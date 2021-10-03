@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
@@ -14,7 +15,7 @@ namespace lost
             GegnerHand,
             MeineReihe,
             GegnerReihe,
-            Ablage
+            Abwurf
         }
         public enum Farben
         {
@@ -88,10 +89,10 @@ namespace lost
             GegnerPunkteStapel[4] = label22;
 
             Abwurfstapel[0] = label31;
-            Abwurfstapel[1] = label31;
-            Abwurfstapel[2] = label31;
-            Abwurfstapel[3] = label31;
-            Abwurfstapel[4] = label31;
+            Abwurfstapel[1] = label30;
+            Abwurfstapel[2] = label29;
+            Abwurfstapel[3] = label28;
+            Abwurfstapel[4] = label27;
             rnd = new Random();
         }
         private void GetCards(Kartenposition Kartenposition)
@@ -102,7 +103,7 @@ namespace lost
                 while (!drawn)
                 {
                     var color = rnd.Next(5);
-                    var value = rnd.Next(1, 14);
+                    var value = rnd.Next(1, 13);
                     if (Karte[color, value] == Kartenposition.Stapel)
                     {
                         drawn = true;
@@ -110,14 +111,14 @@ namespace lost
                         Debug.WriteLine($"Hand: {Kartenposition} - Farbe: {color} - Wert: {value} ");
                         if (Kartenposition == Kartenposition.MeineHand)
                         {
-                            MeineHandkarten[anzMeineHand].Text = $"{(value < 11 ? value : 99)}";
+                            MeineHandkarten[anzMeineHand].Text = $"{value}";
                             MeineHandkarten[anzMeineHand].Tag = color;
                             MeineHandkarten[anzMeineHand].BackColor = DetermineBackColor(color);
                             anzMeineHand++;
                         }
                         else
                         {
-                            GegnerHandkarten[anzGegnerHand].Text = $"{(value < 11 ? value : 99)}";
+                            GegnerHandkarten[anzGegnerHand].Text = $"{value}";
                             GegnerHandkarten[anzGegnerHand].Tag = color;
                             GegnerHandkarten[anzGegnerHand].BackColor = DetermineBackColor(color);
                             anzGegnerHand++;
@@ -132,27 +133,53 @@ namespace lost
 
         private void NächsterZug()
         {
+            //Welche Karte soll gespielt werden
             var card2Play = rnd.Next(8);
+            //Gibt es die gezogene Karte überhaupt noch
+            while (MeineHandkarten[card2Play].Text == "")
+            {
+                card2Play = rnd.Next(8);
+            }
             var farbe = (int)MeineHandkarten[card2Play].Tag;
             var move2Make = rnd.Next(2);
             if (move2Make == (int)Move2Make.Abwerfen)
             {
+                Karte[farbe, (int.Parse(MeineHandkarten[card2Play].Text))] = Kartenposition.Abwurf;
                 Abwurfstapel[farbe].Text = MeineHandkarten[card2Play].Text;
-                MeineHandkarten[card2Play].Text = ".";
+                MeineHandkarten[card2Play].Text = "";
             }
             else
             {
                 if (IstZugGültig(MeineHandkarten[card2Play], MeinPunkteStapel[farbe]))
                 {
+                    Karte[farbe, (int.Parse(MeineHandkarten[card2Play].Text))] = Kartenposition.MeineReihe;
                     MeinPunkteStapel[farbe].Text = MeineHandkarten[card2Play].Text;
-                    MeineHandkarten[card2Play].Text = ".";
+                    MeineHandkarten[card2Play].Text = "";
+                }
+                else
+                {
+                    NächsterZug();
                 }
             }
+            KarteNachziehen();
         }
 
-        private bool IstZugGültig(Label von ,Label nach)
+        private void KarteNachziehen()
         {
-            return true;
+            //Abwurfstapel
+        }
+
+        private bool IstZugGültig(Label von, Label nach)        
+        {
+            if (nach.Text == "" ||
+                int.Parse(nach.Text) > 10 ||
+                ((int.Parse(von.Text) > int.Parse(nach.Text)) && int.Parse(von.Text) <= 10) ||
+                ((int.Parse(von.Text) < int.Parse(nach.Text)) && int.Parse(von.Text) > 10))
+            {
+                return true;
+            }
+            else
+                return false;
         }
 
         private Color DetermineBackColor(int color)
