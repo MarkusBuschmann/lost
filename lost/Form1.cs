@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace lost
@@ -22,7 +16,20 @@ namespace lost
             GegnerReihe,
             Ablage
         }
+        public enum Farben
+        {
+            Gelb,
+            Blau,
+            Weiß,
+            Grün,
+            Rot
+        }
 
+        public enum Move2Make
+        {
+            Abwerfen = 0,
+            Anlegen = 1
+        }
         const int Gelb = 0;
         const int Blau = 1;
         const int Weiß = 2;
@@ -40,12 +47,54 @@ namespace lost
 
         int anzMeineHand = 0;
         int anzGegnerHand = 0;
+        Label[] MeineHandkarten = new Label[8];
+        Label[] GegnerHandkarten = new Label[8];
+        Label[] MeinPunkteStapel = new Label[5];
+        Label[] GegnerPunkteStapel = new Label[5];
+        Label[] Abwurfstapel = new Label[5];
+        Random rnd;
 
         public Form1()
         {
             InitializeComponent();
+            MeineHandkarten[0] = label1;
+            MeineHandkarten[1] = label2;
+            MeineHandkarten[2] = label3;
+            MeineHandkarten[3] = label4;
+            MeineHandkarten[4] = label5;
+            MeineHandkarten[5] = label6;
+            MeineHandkarten[6] = label7;
+            MeineHandkarten[7] = label8;
+
+            GegnerHandkarten[0] = label9;
+            GegnerHandkarten[1] = label10;
+            GegnerHandkarten[2] = label11;
+            GegnerHandkarten[3] = label12;
+            GegnerHandkarten[4] = label13;
+            GegnerHandkarten[5] = label14;
+            GegnerHandkarten[6] = label15;
+            GegnerHandkarten[7] = label16;
+
+            MeinPunkteStapel[0] = label21;
+            MeinPunkteStapel[1] = label20;
+            MeinPunkteStapel[2] = label19;
+            MeinPunkteStapel[3] = label18;
+            MeinPunkteStapel[4] = label17;
+
+            GegnerPunkteStapel[0] = label26;
+            GegnerPunkteStapel[1] = label25;
+            GegnerPunkteStapel[2] = label24;
+            GegnerPunkteStapel[3] = label23;
+            GegnerPunkteStapel[4] = label22;
+
+            Abwurfstapel[0] = label31;
+            Abwurfstapel[1] = label31;
+            Abwurfstapel[2] = label31;
+            Abwurfstapel[3] = label31;
+            Abwurfstapel[4] = label31;
+            rnd = new Random();
         }
-        private void GetCards(Random rnd, Kartenposition Kartenposition)
+        private void GetCards(Kartenposition Kartenposition)
         {
             for (int i = 0; i < 8; i++)
             {
@@ -59,27 +108,79 @@ namespace lost
                         drawn = true;
                         Karte[color, value] = Kartenposition;
                         Debug.WriteLine($"Hand: {Kartenposition} - Farbe: {color} - Wert: {value} ");
-                        anzMeineHand++;
+                        if (Kartenposition == Kartenposition.MeineHand)
+                        {
+                            MeineHandkarten[anzMeineHand].Text = $"{(value < 11 ? value : 99)}";
+                            MeineHandkarten[anzMeineHand].Tag = color;
+                            MeineHandkarten[anzMeineHand].BackColor = DetermineBackColor(color);
+                            anzMeineHand++;
+                        }
+                        else
+                        {
+                            GegnerHandkarten[anzGegnerHand].Text = $"{(value < 11 ? value : 99)}";
+                            GegnerHandkarten[anzGegnerHand].Tag = color;
+                            GegnerHandkarten[anzGegnerHand].BackColor = DetermineBackColor(color);
+                            anzGegnerHand++;
+                        }
+                        
                         StapelSize--;
+                        labelNachziehstapel.Text = StapelSize.ToString();
                     }
                 }
             }
         }
 
+        private void NächsterZug()
+        {
+            var card2Play = rnd.Next(8);
+            var farbe = (int)MeineHandkarten[card2Play].Tag;
+            var move2Make = rnd.Next(2);
+            if (move2Make == (int)Move2Make.Abwerfen)
+            {
+                Abwurfstapel[farbe].Text = MeineHandkarten[card2Play].Text;
+                MeineHandkarten[card2Play].Text = ".";
+            }
+            else
+            {
+                if (IstZugGültig(MeineHandkarten[card2Play], MeinPunkteStapel[farbe]))
+                {
+                    MeinPunkteStapel[farbe].Text = MeineHandkarten[card2Play].Text;
+                    MeineHandkarten[card2Play].Text = ".";
+                }
+            }
+        }
+
+        private bool IstZugGültig(Label von ,Label nach)
+        {
+            return true;
+        }
+
+        private Color DetermineBackColor(int color)
+        {
+            return color == 0 ? MeinPunkteStapel[0].BackColor : color == 1 ? MeinPunkteStapel[1].BackColor :
+                                color == 2 ? MeinPunkteStapel[2].BackColor : color == 3 ? MeinPunkteStapel[3].BackColor : MeinPunkteStapel[4].BackColor;
+        }
         private void button1_Click(object sender, EventArgs e)
         {
+            anzMeineHand = 0;
+            anzGegnerHand = 0;
+            StapelSize = 52;
             for (int j = 0; j < 5; j++)
             {
                 for (int i = 1; i < 14; i++)
                 {
                     Karte[j, i] = Kartenposition.Stapel;
                 }
-            }
-            Random rnd = new Random();
+            }            
             Debug.WriteLine(Environment.NewLine + Environment.NewLine);
             Debug.WriteLine("========================================================");
-            GetCards(rnd, Kartenposition.MeineHand);
-            GetCards(rnd, Kartenposition.GegnerHand);
+            GetCards(Kartenposition.MeineHand);
+            GetCards(Kartenposition.GegnerHand);
+        }
+
+        private void buttonNextMove_Click(object sender, EventArgs e)
+        {
+            NächsterZug();
         }
     }
 }
