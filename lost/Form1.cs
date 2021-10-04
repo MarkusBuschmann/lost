@@ -15,12 +15,14 @@ namespace lost
             Anlegen = 1
         }
 
+        public bool MeinZug;
+        private bool Spielläuft = true;
         Karte[] Nachziehstapel = new Karte[65];
         Karte[] MeineHand = new Karte[8];
         Karte[] GegnerHand = new Karte[8];
-        Karte[,] MeinePunkte = new Karte[5, 14];
-        Karte[,] GegnerPunkte = new Karte[5, 14];
-        Karte[,] Ablage = new Karte[5, 14];
+        Karte[,] MeinePunkte = new Karte[5, 13];
+        Karte[,] GegnerPunkte = new Karte[5, 13];
+        Karte[,] Ablage = new Karte[5, 13];
 
         Label[] MeineHandLabel = new Label[8];
         Label[] GegnerHandLabel = new Label[8];
@@ -72,7 +74,7 @@ namespace lost
             rnd = new Random();
         }
 
-        private void MixAllCards()
+        private void MixAllCards2Nachziehstapel()
         {
             for (int i = 0; i < 65; i++)
             {
@@ -82,7 +84,7 @@ namespace lost
                     var wert = rnd.Next(1, 14);
                     if (Nachziehstapel.Any(x => x != null && x.Farbe == farbe && x.Wert == wert))
                     {
-                        continue;
+                        //continue;
                     }
                     else
                     {
@@ -95,6 +97,10 @@ namespace lost
                     }
                 }
             }
+        }
+        private bool HatNachziehStapelKarten()
+        {
+            return Nachziehstapel.Any(x => x != null);
         }
 
         private Karte ZieheObersteVomNachziehstapel()
@@ -111,21 +117,49 @@ namespace lost
             return null;
         }
 
-        private Karte ErmittleObersteVonMeinePunkte(int farbe)
+        private Karte ErmittleObersteVonPunkteStapel(int farbe)
         {
-            for (int i = 13; i >= 0; i--)
+            Karte[,] PunkteStapel;
+            if (MeinZug)
             {
-                if (MeinePunkte[farbe,i] != null)
+                PunkteStapel = MeinePunkte;
+            }
+            else
+            {
+                PunkteStapel = GegnerPunkte;
+            }
+
+            for (int i = 12; i >= 0; i--)
+            {
+                if (PunkteStapel[farbe,i] != null)
                 {
-                    return MeinePunkte[farbe, i]; ;
+                    return PunkteStapel[farbe, i]; ;
                 }
             }
             return null;
         }
 
-        private void ZieheObersteVonIrgendeinemAblageStapel()
+        private Karte ZieheObersteVonIrgendeinerAblage()
         {
-
+            if (Ablage[0, 0] == null && Ablage[1, 0] == null && Ablage[2, 0] == null && Ablage[3, 0] == null && Ablage[4, 0] == null)
+            {
+                return null;
+            }
+            Karte k = null;
+            while (k == null)
+            {
+                int stapel = rnd.Next(5);
+                for (int i = 12; i >= 0; i--)
+                {
+                    if (Ablage[stapel, i] != null)
+                    {
+                        k = Ablage[stapel, i];
+                        Ablage[stapel, i] = null;
+                        return k;
+                    }
+                }
+            }
+            return k;
         }
 
         private void GetStartingCards()
@@ -142,7 +176,7 @@ namespace lost
 
         private void LegeKarteAufAblage(Karte karte)
         {
-            for (int i = 0; i <= 13; i++)
+            for (int i = 0; i <= 12; i++)
             {
                 if (Ablage[(int)karte.Farbe,i] == null)
                 {
@@ -152,61 +186,100 @@ namespace lost
             }
         }
 
-        private void LegeKarteAufMeinePunkte(Karte karte)
+        private void LegeKarteAufPunkte(Karte karte)
         {
-            for (int i = 0; i <= 13; i++)
+            Karte[,] Punktestapel;
+            if (MeinZug)
             {
-                if (MeinePunkte[(int)karte.Farbe, i] == null)
+                Punktestapel = MeinePunkte;
+            }
+            else
+            {
+                Punktestapel = GegnerPunkte;
+            }
+
+            for (int i = 0; i < 13; i++)
+            {
+                if (Punktestapel[(int)karte.Farbe, i] == null)
                 {
-                    MeinePunkte[(int)karte.Farbe, i] = karte;
+                    Punktestapel[(int)karte.Farbe, i] = karte;
                     break;
                 }
             }
         }
 
-        private void NächsterZug()
+        private void NächsterZug(Karte[] hand)
         {
             //Welche Karte soll gespielt werden
             var c = rnd.Next(8);
             //c = 6;
             //Gibt es die gezogene Karte überhaupt noch
-            while (MeineHand[c] == null)
+            while (hand[c] == null)
             {
                 c = rnd.Next(8);
             }
-            var move2Make = rnd.Next(2);
+            //var move2Make = rnd.Next(2);
             //move2Make = 1;
-            if (move2Make == (int)Move2Make.Abwerfen)
+            if (IstZugGültig(hand[c]))
             {
-                LegeKarteAufAblage(MeineHand[c]);
-                MeineHand[c] = null;
+                LegeKarteAufPunkte(hand[c]);
+                hand[c] = null;
             }
             else
             {
-                if (IstZugGültig(MeineHand[c])) 
+                LegeKarteAufAblage(hand[c]);
+                hand[c] = null;
+            }
+            //if (move2Make == (int)Move2Make.Abwerfen)
+            //{
+            //    LegeKarteAufAblage(hand[c]);
+            //    hand[c] = null;
+            //}
+            //else
+            //{
+            //    if (IstZugGültig(hand[c]))
+            //    {
+            //        LegeKarteAufPunkte(hand[c]);
+            //        hand[c] = null;
+
+            //    }
+            //    else
+            //    {
+            //        NächsterZug(hand);
+            //    }
+            //}
+            var nextAction = rnd.Next(2);
+            if (nextAction == 0)
+            {
+                hand[c] = ZieheObersteVonIrgendeinerAblage();
+                if (hand[c] == null)
                 {
-                    LegeKarteAufMeinePunkte(MeineHand[c]);
-                    MeineHand[c] = null;
-                    
+                    if (HatNachziehStapelKarten())
+                    {
+                        hand[c] = ZieheObersteVomNachziehstapel();
+                    }
+                    else
+                    {
+                        Spielläuft = false; 
+                    }
+                }
+            }
+            else
+            {
+                if (HatNachziehStapelKarten())
+                {
+                    hand[c] = ZieheObersteVomNachziehstapel();
                 }
                 else
                 {
-                    NächsterZug();
+                    Spielläuft = false;
                 }
             }
-            //Next:
-            //If Random 0,1 = 0 
-            //  ZieheObersteVonIrgendeinemAblageStapel();
-            //else
-            //  ZieheObersteVomNachziehstapel
-
-
-            ShowCards();
         }
 
         private bool IstZugGültig(Karte karte)        
         {
-            var oberste = ErmittleObersteVonMeinePunkte((int)karte.Farbe);
+            var oberste = ErmittleObersteVonPunkteStapel((int)karte.Farbe);
             if (oberste == null ||
                 oberste.Wert > 10 ||
                 ((karte.Wert > oberste.Wert) && karte.Wert <= 10) ||
@@ -225,16 +298,105 @@ namespace lost
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            MixAllCards();
+            ResetCards();
+            MixAllCards2Nachziehstapel();
             GetStartingCards();
             ShowCards();
         }
 
+        private void ZeigePunkte()
+        {
+            int meinePunkte = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                int sum = 0;
+                int anz = 0;
+                int anzVerdoppler = 0;
+                for (int j = 0; j < 13; j++)
+                {
+                    if (MeinePunkte[i, j] != null)
+                    {
+                        if (MeinePunkte[i, j].Wert <= 10)
+                        {
+                            sum = sum + MeinePunkte[i, j].Wert;
+                        }
+                        if (MeinePunkte[i, j].Wert > 10)
+                        {
+                            anzVerdoppler++;
+                        }
+                        anz++;
+                    }
+                }
+                var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
+                meinePunkte = meinePunkte + erg;
+            }
+            int gegnerPunkte = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                int sum = 0;
+                int anz = 0;
+                int anzVerdoppler = 0;
+                for (int j = 0; j < 13; j++)
+                {
+                    if (GegnerPunkte[i, j] != null)
+                    {
+                        if (GegnerPunkte[i, j].Wert <= 10)
+                        {
+                            sum = sum + GegnerPunkte[i, j].Wert;
+                        }
+                        if (GegnerPunkte[i, j].Wert > 10)
+                        {
+                            anzVerdoppler++;
+                        }
+                        anz++;
+                    }
+                }
+                var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
+                gegnerPunkte = gegnerPunkte + erg;
+            }
+
+            labelTitle.Text = $"Ich: {meinePunkte}, Gegner: {gegnerPunkte}";
+        }
+
         private void buttonNextMove_Click(object sender, EventArgs e)
         {
-            NächsterZug();
+            MeinZug = false;
+            Spielläuft = true;
+            while (Spielläuft)
+            {
+                MeinZug = !MeinZug;
+                if (MeinZug)
+                {
+                    NächsterZug(MeineHand);
+                }
+                else
+                {
+                    NächsterZug(GegnerHand);
+                }
+            }
+            ShowCards();
+            ZeigePunkte();
         }
-        
+
+        private void ResetCards()
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                MeineHand[i] = null;
+                GegnerHand[i] = null;
+            }
+
+            for (int i = 0; i <= 4; i++)
+            {
+                for (int j = 0; j <= 12; j++)
+                {
+                    Ablage[i,j] = null;
+                    MeinePunkte[i, j] = null;
+                    GegnerPunkte[i, j] = null;
+                }
+            }
+        }
+
         private void ShowCards()
         {
             for (int i = 0; i < 8; i++)
@@ -271,26 +433,64 @@ namespace lost
                     NachziehstapelLabel.BackColor = DetermineBackColor((int)Nachziehstapel[i].Farbe);
                     break;
                 }
+                else
+                {
+                    NachziehstapelLabel.Text = "";
+                    NachziehstapelLabel.BackColor = Color.Gray;
+                }
             }
+            labelStack.Text = "";
+            for (int i = 0; i < 65; i++)
+            {
+                if (Nachziehstapel[i] != null)
+                {
+                    labelStack.Text = labelStack.Text + Nachziehstapel[i].Farbe.ToString() + Nachziehstapel[i].Wert.ToString() + Environment.NewLine;
+                }
+            }
+
             for (int i = 0; i < 5; i++)
             {
-                for (int j = 13; j >= 0; j--)
+                AblageLabel[i].Text = "";
+                for (int j = 0; j < 13; j++)
                 {
                     if (Ablage[i, j] != null)
                     {
-                        AblageLabel[i].Text = Ablage[i, j].Wert.ToString();
-                        break;
+                        AblageLabel[i].Text = AblageLabel[i].Text + Ablage[i, j].Wert.ToString() + ";";
+                    }
+                    if (j == 0)
+                    {
+                        AblageLabel[i].Text = "";
+                    }
+                }
+                
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                MeinePunkteLabel[i].Text = "";
+                for (int j = 0; j < 13; j++)
+                {
+                    if (MeinePunkte[i, j] != null)
+                    {
+                        MeinePunkteLabel[i].Text = MeinePunkteLabel[i].Text + MeinePunkte[i, j].Wert.ToString() + ";" ;
+                    }
+                    if (MeinePunkte[i, 0] == null)
+                    {
+                        MeinePunkteLabel[i].Text = "";
                     }
                 }
             }
             for (int i = 0; i < 5; i++)
             {
-                for (int j = 13; j >= 0; j--)
+                GegnerPunkteLabel[i].Text = "";
+                for (int j = 0; j < 13; j++)
                 {
-                    if (MeinePunkte[i, j] != null)
+                    if (GegnerPunkte[i, j] != null)
                     {
-                        MeinePunkteLabel[i].Text = MeinePunkte[i, j].Wert.ToString();
-                        break;
+                        GegnerPunkteLabel[i].Text = GegnerPunkteLabel[i].Text + GegnerPunkte[i, j].Wert.ToString() + ";";
+                    }
+                    if (GegnerPunkte[i, 0] == null)
+                    {
+                        GegnerPunkteLabel[i].Text = "";
                     }
                 }
             }
