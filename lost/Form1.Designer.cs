@@ -64,17 +64,19 @@
             this.buttonNextMove = new System.Windows.Forms.Button();
             this.labelTitle = new System.Windows.Forms.Label();
             this.labelStack = new System.Windows.Forms.Label();
+            this.button2 = new System.Windows.Forms.Button();
+            this.labelGameNumber = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(505, 54);
+            this.button1.Location = new System.Drawing.Point(229, 54);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
             this.button1.Text = "Neu geben";
             this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button1.Click += new System.EventHandler(this.button_newgame);
             // 
             // label1
             // 
@@ -443,11 +445,32 @@
             this.labelStack.TabIndex = 35;
             this.labelStack.Text = "label32";
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(229, 12);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(224, 23);
+            this.button2.TabIndex = 36;
+            this.button2.Text = "Komplettes Spiel";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button_StartcompleteGame);
+            // 
+            // labelGameNumber
+            // 
+            this.labelGameNumber.AutoSize = true;
+            this.labelGameNumber.Location = new System.Drawing.Point(635, 21);
+            this.labelGameNumber.Name = "labelGameNumber";
+            this.labelGameNumber.Size = new System.Drawing.Size(40, 13);
+            this.labelGameNumber.TabIndex = 37;
+            this.labelGameNumber.Text = "Spiel #";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1121, 753);
+            this.Controls.Add(this.labelGameNumber);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.labelStack);
             this.Controls.Add(this.labelTitle);
             this.Controls.Add(this.buttonNextMove);
@@ -529,6 +552,8 @@
         private System.Windows.Forms.Button buttonNextMove;
         private System.Windows.Forms.Label labelTitle;
         private System.Windows.Forms.Label labelStack;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label labelGameNumber;
     }
 }
 

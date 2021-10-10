@@ -15,7 +15,9 @@ namespace lost
             Anlegen = 1
         }
 
-        public bool MeinZug;
+        public bool stopGameLoop = false;
+        public int anzSpiele = 0;
+        public bool MeinZug = false;
         private bool Spielläuft = true;
         Karte[] Nachziehstapel = new Karte[65];
         Karte[] MeineHand = new Karte[8];
@@ -98,10 +100,10 @@ namespace lost
                 }
             }
         }
-        private bool HatNachziehStapelKarten()
-        {
-            return Nachziehstapel.Any(x => x != null);
-        }
+        //private bool HatNachziehStapelKarten()
+        //{
+        //    return Nachziehstapel.Any(x => x != null);
+        //}
 
         private Karte ZieheObersteVomNachziehstapel()
         {
@@ -111,6 +113,10 @@ namespace lost
                 {
                     var k = Nachziehstapel[i];
                     Nachziehstapel[i] = null;
+                    if (i == 0)
+                    {
+                        Spielläuft = false;
+                    }
                     return k;
                 }
             }
@@ -164,14 +170,20 @@ namespace lost
 
         private void GetStartingCards()
         {
+            Debug.Write("Meine Hand: ");
             for (int i = 0; i < 8; i++)
             {
                 MeineHand[i] = ZieheObersteVomNachziehstapel();
+                Debug.Write($"{MeineHand[i].Farbe}{MeineHand[i].Wert} ");
             }
+            Debug.WriteLine("");
+            Debug.Write("Gegnerhand: ");
             for (int i = 0; i < 8; i++)
             {
                 GegnerHand[i] = ZieheObersteVomNachziehstapel();
+                Debug.Write($"{GegnerHand[i].Farbe}{GegnerHand[i].Wert} ");
             }
+            Debug.WriteLine("");
         }
 
         private void LegeKarteAufAblage(Karte karte)
@@ -218,62 +230,50 @@ namespace lost
             {
                 c = rnd.Next(8);
             }
-            //var move2Make = rnd.Next(2);
-            //move2Make = 1;
             if (IstZugGültig(hand[c]))
             {
+                Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Lege {hand[c].Farbe.ToString() + " " + hand[c].Wert.ToString()} auf Punktestapel");
                 LegeKarteAufPunkte(hand[c]);
                 hand[c] = null;
             }
             else
             {
+                Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Lege {hand[c].Farbe.ToString() + " " + hand[c].Wert.ToString()} auf Ablage");
                 LegeKarteAufAblage(hand[c]);
                 hand[c] = null;
             }
-            //if (move2Make == (int)Move2Make.Abwerfen)
-            //{
-            //    LegeKarteAufAblage(hand[c]);
-            //    hand[c] = null;
-            //}
-            //else
-            //{
-            //    if (IstZugGültig(hand[c]))
-            //    {
-            //        LegeKarteAufPunkte(hand[c]);
-            //        hand[c] = null;
-
-            //    }
-            //    else
-            //    {
-            //        NächsterZug(hand);
-            //    }
-            //}
             var nextAction = rnd.Next(2);
             if (nextAction == 0)
             {
                 hand[c] = ZieheObersteVonIrgendeinerAblage();
                 if (hand[c] == null)
                 {
-                    if (HatNachziehStapelKarten())
-                    {
+                    //if (HatNachziehStapelKarten())
+                    //{
                         hand[c] = ZieheObersteVomNachziehstapel();
-                    }
-                    else
-                    {
-                        Spielläuft = false; 
-                    }
+                        Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Ziehe vom Nachziehstapel {hand[c].Farbe.ToString() + " " + hand[c].Wert.ToString()} auf Hand");                        
+                    //}
+                    //else
+                    //{
+                    //    Spielläuft = false; 
+                    //}
+                }
+                else
+                {
+                    Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Ziehe von Ablage {hand[c].Farbe.ToString() + " " + hand[c].Wert.ToString()} auf Hand");
                 }
             }
             else
             {
-                if (HatNachziehStapelKarten())
-                {
+                //if (HatNachziehStapelKarten())
+                //{
                     hand[c] = ZieheObersteVomNachziehstapel();
-                }
-                else
-                {
-                    Spielläuft = false;
-                }
+                    Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Ziehe vom Nachziehstapel {hand[c].Farbe.ToString() + " " + hand[c].Wert.ToString()} auf Hand");
+                //}
+                //else
+                //{
+                //    Spielläuft = false;
+                //}
             }
         }
 
@@ -296,7 +296,7 @@ namespace lost
             return color == 0 ? MeinePunkteLabel[0].BackColor : color == 1 ? MeinePunkteLabel[1].BackColor :
                                 color == 2 ? MeinePunkteLabel[2].BackColor : color == 3 ? MeinePunkteLabel[3].BackColor : MeinePunkteLabel[4].BackColor;
         }
-        private void button1_Click(object sender, EventArgs e)
+        private void button_newgame(object sender, EventArgs e)
         {
             ResetCards();
             MixAllCards2Nachziehstapel();
@@ -327,8 +327,15 @@ namespace lost
                         anz++;
                     }
                 }
-                var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
-                meinePunkte = meinePunkte + erg;
+                if (anz > 0)
+                {
+                    var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
+                    meinePunkte = meinePunkte + erg;
+                }
+            }
+            if (meinePunkte > 40)
+            {
+                stopGameLoop = true;
             }
             int gegnerPunkte = 0;
             for (int i = 0; i < 5; i++)
@@ -351,19 +358,27 @@ namespace lost
                         anz++;
                     }
                 }
-                var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
-                gegnerPunkte = gegnerPunkte + erg;
+                if (anz > 0)
+                {
+                    var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
+                    gegnerPunkte = gegnerPunkte + erg;
+                }
             }
+            if (gegnerPunkte > 40)
+            {
+                stopGameLoop = true;
+            }
+
 
             labelTitle.Text = $"Ich: {meinePunkte}, Gegner: {gegnerPunkte}";
         }
 
         private void buttonNextMove_Click(object sender, EventArgs e)
         {
-            MeinZug = false;
-            Spielläuft = true;
-            while (Spielläuft)
-            {
+            //MeinZug = false;
+            //Spielläuft = true;
+            //while (Spielläuft)
+            //{
                 MeinZug = !MeinZug;
                 if (MeinZug)
                 {
@@ -373,7 +388,7 @@ namespace lost
                 {
                     NächsterZug(GegnerHand);
                 }
-            }
+            //}
             ShowCards();
             ZeigePunkte();
         }
@@ -457,10 +472,10 @@ namespace lost
                     {
                         AblageLabel[i].Text = AblageLabel[i].Text + Ablage[i, j].Wert.ToString() + ";";
                     }
-                    if (j == 0)
-                    {
-                        AblageLabel[i].Text = "";
-                    }
+                    //if (j == 0)
+                    //{
+                    //    AblageLabel[i].Text = "";
+                    //}
                 }
                 
             }
@@ -493,6 +508,37 @@ namespace lost
                         GegnerPunkteLabel[i].Text = "";
                     }
                 }
+            }
+        }
+
+        private void button_StartcompleteGame(object sender, EventArgs e)
+        {
+            anzSpiele = 0;
+            while (anzSpiele <= 500 && !stopGameLoop)
+            {
+                anzSpiele++;
+                ResetCards();
+                MixAllCards2Nachziehstapel();
+                GetStartingCards();
+                MeinZug = false;
+
+                Spielläuft = true;
+                while (Spielläuft)
+                {
+                    MeinZug = !MeinZug;
+                    if (MeinZug)
+                    {
+                        NächsterZug(MeineHand);
+                    }
+                    else
+                    {
+                        NächsterZug(GegnerHand);
+                    }
+                }
+                ShowCards();
+                ZeigePunkte();
+                labelGameNumber.Text = "Spiel #" + anzSpiele;
+                //Application.DoEvents();1
             }
         }
     }
