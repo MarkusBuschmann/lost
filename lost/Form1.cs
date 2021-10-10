@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Linq;
+using Microsoft.VisualBasic;
 
 namespace lost
 {
@@ -78,6 +79,7 @@ namespace lost
 
         private void MixAllCards2Nachziehstapel()
         {
+            ResetCards();
             for (int i = 0; i < 65; i++)
             {
                 while (true)
@@ -300,7 +302,7 @@ namespace lost
         {
             ResetCards();
             MixAllCards2Nachziehstapel();
-            GetStartingCards();
+            //GetStartingCards();
             ShowCards();
         }
 
@@ -395,6 +397,10 @@ namespace lost
 
         private void ResetCards()
         {
+            for (int i = 0; i < 65; i++)
+            {
+                Nachziehstapel[i] = null;
+            }
             for (int i = 0; i < 8; i++)
             {
                 MeineHand[i] = null;
@@ -509,6 +515,7 @@ namespace lost
                     }
                 }
             }
+            ZeigePunkte();
         }
 
         private void button_StartcompleteGame(object sender, EventArgs e)
@@ -540,6 +547,237 @@ namespace lost
                 labelGameNumber.Text = "Spiel #" + anzSpiele;
                 //Application.DoEvents();1
             }
+        }
+
+        private static DialogResult ShowInputDialog(ref string input, int x, int y)
+        {
+            System.Drawing.Size size = new System.Drawing.Size(200, 70);
+            Form inputBox = new Form();
+
+            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            inputBox.ClientSize = size;
+            inputBox.Text = "Karten";
+
+            System.Windows.Forms.TextBox textBox = new TextBox();
+            textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
+            textBox.Location = new System.Drawing.Point(5, 5);
+            textBox.Text = input;
+            textBox.SelectionStart = input.Length;
+            inputBox.Controls.Add(textBox);
+
+            Button okButton = new Button();
+            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(75, 23);
+            okButton.Text = "&OK";
+            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 39);
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new Button();
+            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new System.Drawing.Size(75, 23);
+            cancelButton.Text = "&Abbrechen";
+            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 39);
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            inputBox.StartPosition = FormStartPosition.Manual;
+            inputBox.Location = new Point(x, y);
+            DialogResult result = inputBox.ShowDialog();
+            input = textBox.Text;
+            return result;
+        }
+
+        private List<Karte> HoleKartenAusStapel(Farbe? farbeClick)
+        {
+            var farbekurz = farbeClick.ToString().ToLower();
+            if (farbekurz.Length > 0)
+            {
+                if (farbekurz == "grün")
+                {
+                    farbekurz = "ü";
+                }
+                else
+                {
+                    farbekurz = farbekurz.Substring(0, 1);
+                }
+
+            }
+
+            //string input = Interaction.InputBox("Karte", "Karte eingeben", farbekurz, Cursor.Position.X, Cursor.Position.Y - 100);
+            string input= farbekurz;
+            if (ShowInputDialog (ref input, Cursor.Position.X, Cursor.Position.Y - 100) == DialogResult.Cancel)
+            {
+                return null;
+            }            
+
+            if (input.Length < 2)
+            {
+                return null;
+            }
+            var k = new List<Karte>();
+            var farbe = input.Substring(0, 1);
+            Farbe f  ;
+            if (farbe == "g")
+            {
+                f = Farbe.Gelb;
+            }
+            else if (farbe == "b")
+            {
+                f = Farbe.Blau;
+            }
+            else if (farbe == "w")
+            {
+                f = Farbe.Weiß;
+            }
+            else if (farbe == "ü")
+            {
+                f = Farbe.Grün;
+            }
+            else if (farbe == "r")
+            {
+                f = Farbe.Rot;
+            }
+            else
+            {
+                return null;
+            }
+            var wert = input.Substring(1);
+            if (wert.Length < 1)
+            {
+                return null;
+            }
+            var sp = wert.Split(',');
+            foreach (var sps in sp)
+            {
+                if (int.TryParse(sps, out int w))
+                {
+                    for (int n = 0; n < 65; n++)
+                    {
+                        if (Nachziehstapel[n] != null && Nachziehstapel[n].Wert == w && Nachziehstapel[n].Farbe == f)
+                        {
+                            k.Add(new Karte() { Wert = w, Farbe = f });
+                            Nachziehstapel[n] = null;                            
+                        }
+                    }                    
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            return k;
+        }
+
+
+        private void labelmeine_Click(object sender, EventArgs e)
+        {
+            var l = (Label)sender;
+            var k = HoleKartenAusStapel(null);
+            if (k != null && k.Count == 1)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    if (MeineHandLabel[i] == l)
+                    {
+                        MeineHand[i] = k[0];
+                        break;
+                    }
+                }
+                ShowCards();
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            ResetCards();
+            MixAllCards2Nachziehstapel();
+            ShowCards();
+        }
+
+        private void Form1_Shown(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label21_Click(object sender, EventArgs e)
+        {
+            MeinZug = true;
+            LegeKartenAufPunktestapel(Farbe.Gelb);
+        }
+
+        private void label20_Click(object sender, EventArgs e)
+        {
+            MeinZug = true;
+            LegeKartenAufPunktestapel(Farbe.Blau);
+        }
+
+        private void LegeKartenAufPunktestapel(Farbe f)
+        {
+            var k = HoleKartenAusStapel(f);
+            if (k != null)
+            {
+                foreach (var ks in k)
+                {
+                    LegeKarteAufPunkte(ks);
+                }
+                ShowCards();
+            }
+        }
+
+        private void label19_Click(object sender, EventArgs e)
+        {
+            MeinZug = true;
+            LegeKartenAufPunktestapel(Farbe.Weiß);
+        }
+
+        private void label18_Click(object sender, EventArgs e)
+        {
+            MeinZug = true;
+            LegeKartenAufPunktestapel(Farbe.Grün);
+        }
+
+        private void label17_Click(object sender, EventArgs e)
+        {
+            MeinZug = true;
+            LegeKartenAufPunktestapel(Farbe.Rot);
+        }
+
+        private void label26_Click(object sender, EventArgs e)
+        {
+            MeinZug = false;
+            LegeKartenAufPunktestapel(Farbe.Gelb);
+        }
+
+        private void label25_Click(object sender, EventArgs e)
+        {
+            MeinZug = false;
+            LegeKartenAufPunktestapel(Farbe.Blau);
+        }
+
+        private void label24_Click(object sender, EventArgs e)
+        {
+            MeinZug = false;
+            LegeKartenAufPunktestapel(Farbe.Weiß);
+        }
+
+        private void label23_Click(object sender, EventArgs e)
+        {
+            MeinZug = false;
+            LegeKartenAufPunktestapel(Farbe.Grün);
+        }
+
+        private void label22_Click(object sender, EventArgs e)
+        {
+            MeinZug = false;
+            LegeKartenAufPunktestapel(Farbe.Rot);
         }
     }
     public class Karte
