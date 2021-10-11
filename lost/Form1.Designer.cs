@@ -60,7 +60,6 @@
             this.label29 = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
             this.label31 = new System.Windows.Forms.Label();
-            this.NachziehstapelLabel = new System.Windows.Forms.Label();
             this.buttonNextMove = new System.Windows.Forms.Button();
             this.labelTitle = new System.Windows.Forms.Label();
             this.labelStack = new System.Windows.Forms.Label();
@@ -426,16 +425,6 @@
             this.label31.TabIndex = 27;
             this.label31.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // NachziehstapelLabel
-            // 
-            this.NachziehstapelLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.NachziehstapelLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.NachziehstapelLabel.Location = new System.Drawing.Point(234, 204);
-            this.NachziehstapelLabel.Name = "NachziehstapelLabel";
-            this.NachziehstapelLabel.Size = new System.Drawing.Size(70, 50);
-            this.NachziehstapelLabel.TabIndex = 32;
-            this.NachziehstapelLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // buttonNextMove
             // 
             this.buttonNextMove.Location = new System.Drawing.Point(326, 54);
@@ -473,7 +462,7 @@
             this.button2.TabIndex = 36;
             this.button2.Text = "Komplettes Spiel";
             this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button_StartcompleteGame);
+            this.button2.Click += new System.EventHandler(this.StartGameFromThisPoint);
             // 
             // labelGameNumber
             // 
@@ -494,7 +483,6 @@
             this.Controls.Add(this.labelStack);
             this.Controls.Add(this.labelTitle);
             this.Controls.Add(this.buttonNextMove);
-            this.Controls.Add(this.NachziehstapelLabel);
             this.Controls.Add(this.label27);
             this.Controls.Add(this.label28);
             this.Controls.Add(this.label29);
@@ -570,7 +558,6 @@
         private System.Windows.Forms.Label label29;
         private System.Windows.Forms.Label label30;
         private System.Windows.Forms.Label label31;
-        private System.Windows.Forms.Label NachziehstapelLabel;
         private System.Windows.Forms.Button buttonNextMove;
         private System.Windows.Forms.Label labelTitle;
         private System.Windows.Forms.Label labelStack;
