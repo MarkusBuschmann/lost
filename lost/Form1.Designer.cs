@@ -87,7 +87,7 @@
             this.label1.Size = new System.Drawing.Size(70, 50);
             this.label1.TabIndex = 1;
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label1.Click += new System.EventHandler(this.labelmeine_Click);
+            this.label1.Click += new System.EventHandler(this.labelMeineHandkartenClick);
             // 
             // label2
             // 
@@ -98,7 +98,7 @@
             this.label2.Size = new System.Drawing.Size(70, 50);
             this.label2.TabIndex = 2;
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label2.Click += new System.EventHandler(this.labelmeine_Click);
+            this.label2.Click += new System.EventHandler(this.labelMeineHandkartenClick);
             // 
             // label3
             // 
@@ -109,7 +109,7 @@
             this.label3.Size = new System.Drawing.Size(70, 50);
             this.label3.TabIndex = 3;
             this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label3.Click += new System.EventHandler(this.labelmeine_Click);
+            this.label3.Click += new System.EventHandler(this.labelMeineHandkartenClick);
             // 
             // label4
             // 
@@ -120,7 +120,7 @@
             this.label4.Size = new System.Drawing.Size(70, 50);
             this.label4.TabIndex = 4;
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label4.Click += new System.EventHandler(this.labelmeine_Click);
+            this.label4.Click += new System.EventHandler(this.labelMeineHandkartenClick);
             // 
             // label5
             // 
@@ -131,7 +131,7 @@
             this.label5.Size = new System.Drawing.Size(70, 50);
             this.label5.TabIndex = 5;
             this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label5.Click += new System.EventHandler(this.labelmeine_Click);
+            this.label5.Click += new System.EventHandler(this.labelMeineHandkartenClick);
             // 
             // label6
             // 
@@ -142,7 +142,7 @@
             this.label6.Size = new System.Drawing.Size(70, 50);
             this.label6.TabIndex = 6;
             this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label6.Click += new System.EventHandler(this.labelmeine_Click);
+            this.label6.Click += new System.EventHandler(this.labelMeineHandkartenClick);
             // 
             // label7
             // 
@@ -153,7 +153,7 @@
             this.label7.Size = new System.Drawing.Size(70, 50);
             this.label7.TabIndex = 7;
             this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label7.Click += new System.EventHandler(this.labelmeine_Click);
+            this.label7.Click += new System.EventHandler(this.labelMeineHandkartenClick);
             // 
             // label8
             // 
@@ -164,7 +164,7 @@
             this.label8.Size = new System.Drawing.Size(70, 50);
             this.label8.TabIndex = 8;
             this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label8.Click += new System.EventHandler(this.labelmeine_Click);
+            this.label8.Click += new System.EventHandler(this.labelMeineHandkartenClick);
             // 
             // label9
             // 
@@ -531,7 +531,6 @@
             this.Text = "Form1";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.Form1_Load);
-            this.Shown += new System.EventHandler(this.Form1_Shown);
             this.ResumeLayout(false);
             this.PerformLayout();
 

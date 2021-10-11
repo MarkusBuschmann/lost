@@ -86,7 +86,13 @@ namespace lost
                 {
                     var farbe = (Farbe)rnd.Next(0,5);
                     var wert = rnd.Next(1, 14);
-                    if (Nachziehstapel.Any(x => x != null && x.Farbe == farbe && x.Wert == wert))
+                    if (wert > 11)
+                        wert = 11;
+
+                    //if (Nachziehstapel.Any(x => x != null && (x.Wert == 11 && Nachziehstapel.Count(y => y.Farbe == farbe && y.Wert == 11) == 3 || 
+                    //x.Farbe == farbe && x.Wert == wert)))
+                    if (wert == 11 && Nachziehstapel.Count(x => x != null && x.Farbe == farbe && x.Wert == 11) == 3 ||
+                     wert < 11 && Nachziehstapel.Any(x => x != null && x.Farbe == farbe && x.Wert == wert))
                     {
                         //continue;
                     }
@@ -172,20 +178,20 @@ namespace lost
 
         private void GetStartingCards()
         {
-            Debug.Write("Meine Hand: ");
+            //Debug.Write("Meine Hand: ");
             for (int i = 0; i < 8; i++)
             {
                 MeineHand[i] = ZieheObersteVomNachziehstapel();
-                Debug.Write($"{MeineHand[i].Farbe}{MeineHand[i].Wert} ");
+                //Debug.Write($"{MeineHand[i].Farbe}{MeineHand[i].Wert} ");
             }
-            Debug.WriteLine("");
-            Debug.Write("Gegnerhand: ");
+            //Debug.WriteLine("");
+            //Debug.Write("Gegnerhand: ");
             for (int i = 0; i < 8; i++)
             {
                 GegnerHand[i] = ZieheObersteVomNachziehstapel();
-                Debug.Write($"{GegnerHand[i].Farbe}{GegnerHand[i].Wert} ");
+                //Debug.Write($"{GegnerHand[i].Farbe}{GegnerHand[i].Wert} ");
             }
-            Debug.WriteLine("");
+            //Debug.WriteLine("");
         }
 
         private void LegeKarteAufAblage(Karte karte)
@@ -195,6 +201,17 @@ namespace lost
                 if (Ablage[(int)karte.Farbe,i] == null)
                 {
                     Ablage[(int)karte.Farbe,i] = karte;
+                    break;
+                }
+            }
+        }
+        private void LegeKarteAufNachziehstapel(Karte karte)
+        {
+            for (int i = 0; i <= 65; i++)
+            {
+                if (Nachziehstapel[i] == null)
+                {
+                    Nachziehstapel[i] = karte;
                     break;
                 }
             }
@@ -476,14 +493,13 @@ namespace lost
                 {
                     if (Ablage[i, j] != null)
                     {
-                        AblageLabel[i].Text = AblageLabel[i].Text + Ablage[i, j].Wert.ToString() + ";";
+                        AblageLabel[i].Text = AblageLabel[i].Text + Ablage[i, j].Wert.ToString() + ",";
                     }
-                    //if (j == 0)
-                    //{
-                    //    AblageLabel[i].Text = "";
-                    //}
                 }
-                
+                if (AblageLabel[i].Text.Length > 1)
+                {
+                    AblageLabel[i].Text = AblageLabel[i].Text.Substring(0, AblageLabel[i].Text.Length - 1);
+                }
             }
             for (int i = 0; i < 5; i++)
             {
@@ -492,12 +508,16 @@ namespace lost
                 {
                     if (MeinePunkte[i, j] != null)
                     {
-                        MeinePunkteLabel[i].Text = MeinePunkteLabel[i].Text + MeinePunkte[i, j].Wert.ToString() + ";" ;
+                        MeinePunkteLabel[i].Text = MeinePunkteLabel[i].Text + MeinePunkte[i, j].Wert.ToString() + "," ;
                     }
                     if (MeinePunkte[i, 0] == null)
                     {
                         MeinePunkteLabel[i].Text = "";
                     }
+                }
+                if (MeinePunkteLabel[i].Text.Length > 1)
+                {
+                    MeinePunkteLabel[i].Text = MeinePunkteLabel[i].Text.Substring(0, MeinePunkteLabel[i].Text.Length - 1);
                 }
             }
             for (int i = 0; i < 5; i++)
@@ -507,12 +527,16 @@ namespace lost
                 {
                     if (GegnerPunkte[i, j] != null)
                     {
-                        GegnerPunkteLabel[i].Text = GegnerPunkteLabel[i].Text + GegnerPunkte[i, j].Wert.ToString() + ";";
+                        GegnerPunkteLabel[i].Text = GegnerPunkteLabel[i].Text + GegnerPunkte[i, j].Wert.ToString() + ",";
                     }
                     if (GegnerPunkte[i, 0] == null)
                     {
                         GegnerPunkteLabel[i].Text = "";
                     }
+                }
+                if (GegnerPunkteLabel[i].Text.Length > 1)
+                {
+                    GegnerPunkteLabel[i].Text = GegnerPunkteLabel[i].Text.Substring(0, GegnerPunkteLabel[i].Text.Length - 1);
                 }
             }
             ZeigePunkte();
@@ -660,7 +684,8 @@ namespace lost
                         if (Nachziehstapel[n] != null && Nachziehstapel[n].Wert == w && Nachziehstapel[n].Farbe == f)
                         {
                             k.Add(new Karte() { Wert = w, Farbe = f });
-                            Nachziehstapel[n] = null;                            
+                            Nachziehstapel[n] = null;
+                            break;
                         }
                     }                    
                 }
@@ -672,10 +697,23 @@ namespace lost
             return k;
         }
 
-
-        private void labelmeine_Click(object sender, EventArgs e)
+        private void labelMeineHandkartenClick(object sender, EventArgs e)
         {
             var l = (Label)sender;
+            var ea = (MouseEventArgs)e;
+            if (ea.Button == MouseButtons.Right)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    if (MeineHandLabel[i] == l)
+                    {
+                        LegeKarteAufNachziehstapel(MeineHand[i]);
+                        MeineHand[i] = null;
+                        ShowCards();
+                        break;
+                    }
+                }
+            }
             var k = HoleKartenAusStapel(null);
             if (k != null && k.Count == 1)
             {
@@ -702,21 +740,51 @@ namespace lost
             ShowCards();
         }
 
-        private void Form1_Shown(object sender, EventArgs e)
+        private void labelPunkteClick(MouseEventArgs me, Label lbl, Farbe f)
         {
-
+            if (me.Button == MouseButtons.Right)
+            {
+                if (lbl.Text.Length >= 2)
+                {
+                    var cardValues = lbl.Text.Split(',');
+                    foreach (var cardValue in cardValues)
+                    {
+                        if (!string.IsNullOrEmpty(cardValue))
+                        {
+                            var k = new Karte()
+                            {
+                                Farbe = f,
+                                Wert = int.Parse(cardValue)
+                            };
+                            LegeKarteAufNachziehstapel(k);
+                        }
+                    }
+                    for (int i = 0; i < 13; i++)
+                    {
+                        MeinePunkte[(int)f, i] = null;
+                    }
+                    ShowCards();
+                }
+            }
+            LegeKartenAufPunktestapel(f);
         }
 
         private void label21_Click(object sender, EventArgs e)
         {
             MeinZug = true;
-            LegeKartenAufPunktestapel(Farbe.Gelb);
+            var me = (MouseEventArgs)e;
+            var lbl = (Label)sender;
+            var f = Farbe.Gelb;
+            labelPunkteClick(me, lbl, f);
         }
 
         private void label20_Click(object sender, EventArgs e)
         {
             MeinZug = true;
-            LegeKartenAufPunktestapel(Farbe.Blau);
+            var me = (MouseEventArgs)e;
+            var lbl = (Label)sender;
+            var f = Farbe.Blau;
+            labelPunkteClick(me, lbl, f);
         }
 
         private void LegeKartenAufPunktestapel(Farbe f)
@@ -735,19 +803,28 @@ namespace lost
         private void label19_Click(object sender, EventArgs e)
         {
             MeinZug = true;
-            LegeKartenAufPunktestapel(Farbe.Weiß);
+            var me = (MouseEventArgs)e;
+            var lbl = (Label)sender;
+            var f = Farbe.Weiß;
+            labelPunkteClick(me, lbl, f);
         }
 
         private void label18_Click(object sender, EventArgs e)
         {
             MeinZug = true;
-            LegeKartenAufPunktestapel(Farbe.Grün);
+            var me = (MouseEventArgs)e;
+            var lbl = (Label)sender;
+            var f = Farbe.Grün;
+            labelPunkteClick(me, lbl, f);
         }
 
         private void label17_Click(object sender, EventArgs e)
         {
             MeinZug = true;
-            LegeKartenAufPunktestapel(Farbe.Rot);
+            var me = (MouseEventArgs)e;
+            var lbl = (Label)sender;
+            var f = Farbe.Rot;
+            labelPunkteClick(me, lbl, f);
         }
 
         private void label26_Click(object sender, EventArgs e)
