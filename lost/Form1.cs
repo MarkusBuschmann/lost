@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Linq;
 using Microsoft.VisualBasic;
+using System.Threading;
 
 namespace lost
 {
@@ -32,6 +33,10 @@ namespace lost
         Label[] MeinePunkteLabel = new Label[5];
         Label[] GegnerPunkteLabel = new Label[5];
         Label[] AblageLabel = new Label[5];
+
+        int meinePunkte = 0;
+        int gegnerPunkte = 0;
+
 
         Random rnd;
 
@@ -156,22 +161,35 @@ namespace lost
 
         private Karte ZieheObersteVonIrgendeinerAblage()
         {
+            //Kein Ablagestapel enthält eine Karte
             if (Ablage[0, 0] == null && Ablage[1, 0] == null && Ablage[2, 0] == null && Ablage[3, 0] == null && Ablage[4, 0] == null)
             {
                 return null;
             }
+
+            var farbenSchonProbiert = new bool[5];
             Karte k = null;
             while (k == null)
             {
-                int stapel = rnd.Next(5);
-                for (int i = 12; i >= 0; i--)
+                int farbe = rnd.Next(5);
+                farbenSchonProbiert[farbe] = true;
+                for (int pos = 12; pos >= 0; pos--)
                 {
-                    if (Ablage[stapel, i] != null)
+                    if (Ablage[farbe, pos] != null)
                     {
-                        k = Ablage[stapel, i];
-                        Ablage[stapel, i] = null;
-                        return k;
+                        //Nur ziehen, wenn anlegbar
+                        var oberste = ErmittleObersteVonPunkteStapel(farbe);
+                        if (oberste != null && DarfKarteAufPunkte(Ablage[farbe, pos].Wert, oberste.Wert))
+                        { 
+                            k = Ablage[farbe, pos];
+                            Ablage[farbe, pos] = null;
+                            return k;
+                        }
                     }
+                }
+                if (farbenSchonProbiert.All(x => x == true))
+                {
+                    return null;
                 }
             }
             return k;
@@ -243,7 +261,7 @@ namespace lost
             }
         }
 
-        private void NächsterZug(Karte[] kartenhand,int? kartenPos,int? wohin)
+        private void NächsterZug(Karte[] kartenhand,int? kartenPos,int? wohin, bool letztesDrittel = false)
         {
             int c;
             if (kartenPos == null)
@@ -261,15 +279,40 @@ namespace lost
                 c = (int)kartenPos;
             }
             var nextAction = rnd.Next(2);
-            if ((wohin == 0 || nextAction == 0) && DarfKarteAufPunkte(kartenhand[c]))
+            //0 = Punkte,1 = Ablage
+            if (wohin == 0 || nextAction == 0)
             {
-                //Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Lege {kartenhand[c].Farbe.ToString() + " " + kartenhand[c].Wert.ToString()} auf Punktestapel");
-                LegeKarteAufPunkte(kartenhand[c]);
-                kartenhand[c] = null;
+                var oberste = ErmittleObersteVonPunkteStapel((int)kartenhand[c].Farbe);
+                if (oberste == null || DarfKarteAufPunkte(kartenhand[c].Wert, oberste.Wert))
+                {
+                    //Ermittle im 1. und 2. Drittel immer die niedrigste bzw die Verdoppler zuerst
+                    if (!letztesDrittel)
+                    {
+                        for (int i = 0; i < 8; i++)
+                        {
+                            if (i != c && 
+                                kartenhand[i].Farbe == kartenhand[c].Farbe && 
+                                (oberste == null || DarfKarteAufPunkte(kartenhand[i].Wert, oberste.Wert)) &&
+                                (kartenhand[i].Wert > 10))
+                            {
+                                c = i;
+                                break;
+                            }
+                            else if (i != c &&
+                                kartenhand[i].Farbe == kartenhand[c].Farbe &&
+                                (oberste == null || DarfKarteAufPunkte(kartenhand[i].Wert, oberste.Wert)) &&
+                                kartenhand[i].Wert < kartenhand[c].Wert)
+                            {
+                                c = i;
+                            }
+                        }
+                    }
+                    LegeKarteAufPunkte(kartenhand[c]);
+                    kartenhand[c] = null;
+                }
             }
             else
             {
-                //Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Lege {kartenhand[c].Farbe.ToString() + " " + kartenhand[c].Wert.ToString()} auf Ablage");
                 LegeKarteAufAblage(kartenhand[c]);
                 kartenhand[c] = null;
             }
@@ -280,43 +323,21 @@ namespace lost
                 kartenhand[c] = ZieheObersteVonIrgendeinerAblage();
                 if (kartenhand[c] == null)
                 {
-                    //if (HatNachziehStapelKarten())
-                    //{
                         kartenhand[c] = ZieheObersteVomNachziehstapel();
-                        //Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Ziehe vom Nachziehstapel {kartenhand[c].Farbe.ToString() + " " + kartenhand[c].Wert.ToString()} auf Hand");                        
-                    //}
-                    //else
-                    //{
-                    //    Spielläuft = false; 
-                    //}
-                }
-                else
-                {
-                    //Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Ziehe von Ablage {kartenhand[c].Farbe.ToString() + " " + kartenhand[c].Wert.ToString()} auf Hand");
                 }
             }
             else
             {
-                //if (HatNachziehStapelKarten())
-                //{
                     kartenhand[c] = ZieheObersteVomNachziehstapel();
-                    //Debug.WriteLine($"{(MeinZug == true ? "MeinZug" : "Gegnerzug")}: Ziehe vom Nachziehstapel {kartenhand[c].Farbe.ToString() + " " + kartenhand[c].Wert.ToString()} auf Hand");
-                //}
-                //else
-                //{
-                //    Spielläuft = false;
-                //}
             }
-            //Debug.Assert(kartenhand.All(x => x != null));
+            ShowCards();
+            Application.DoEvents();
         }
-
-        private bool DarfKarteAufPunkte(Karte karte)        
+        private bool DarfKarteAufPunkte(int wertKarte, int wertPunkte)
         {
-            var oberste = ErmittleObersteVonPunkteStapel((int)karte.Farbe);
-            if (oberste == null ||
-                oberste.Wert > 10 ||
-                ((karte.Wert > oberste.Wert) && karte.Wert <= 10) ||
-                ((karte.Wert < oberste.Wert) && karte.Wert > 10))
+            if (wertPunkte > 10 ||
+                ((wertKarte > wertPunkte) && wertKarte <= 10) ||
+                ((wertKarte < wertPunkte) && wertKarte > 10))
             {
                 return true;
             }
@@ -337,9 +358,9 @@ namespace lost
             ShowCards();
         }
 
-        private void ZeigePunkte()
+        private void BerechnePunkte()
         {
-            int meinePunkte = 0;
+            int meinePunktelokal = 0;
             for (int i = 0; i < 5; i++)
             {
                 int sum = 0;
@@ -363,14 +384,14 @@ namespace lost
                 if (anz > 0)
                 {
                     var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
-                    meinePunkte = meinePunkte + erg;
+                    meinePunktelokal = meinePunktelokal + erg;
                 }
             }
-            if (meinePunkte > 40)
-            {
-                stopGameLoop = true;
-            }
-            int gegnerPunkte = 0;
+            //if (meinePunktelokal > 40)
+            //{
+            //    stopGameLoop = true;
+            //}
+            int gegnerPunktelokal = 0;
             for (int i = 0; i < 5; i++)
             {
                 int sum = 0;
@@ -394,16 +415,18 @@ namespace lost
                 if (anz > 0)
                 {
                     var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
-                    gegnerPunkte = gegnerPunkte + erg;
+                    gegnerPunktelokal = gegnerPunktelokal + erg;
                 }
             }
-            if (gegnerPunkte > 40)
-            {
-                stopGameLoop = true;
-            }
+            //if (gegnerPunktelokal > 40)
+            //{
+            //    stopGameLoop = true;
+            //}
 
+            meinePunkte = meinePunkte + meinePunktelokal;
+            gegnerPunkte = gegnerPunkte + gegnerPunktelokal;
 
-            labelTitle.Text = $"Ich: {meinePunkte}, Gegner: {gegnerPunkte}";
+            labelTitle.Text = $"Ich: {meinePunktelokal}, Gegner: {gegnerPunktelokal}";
         }
 
         private void buttonNextMove_Click(object sender, EventArgs e)
@@ -423,7 +446,7 @@ namespace lost
                 }
             //}
             ShowCards();
-            ZeigePunkte();
+            BerechnePunkte();
         }
 
         private void ResetCards()
@@ -553,20 +576,26 @@ namespace lost
                     GegnerPunkteLabel[i].Text = GegnerPunkteLabel[i].Text.Substring(0, GegnerPunkteLabel[i].Text.Length - 1);
                 }
             }
-            ZeigePunkte();
+            BerechnePunkte();
         }
 
         private void StartGameFromThisPoint(object sender, EventArgs e)
         {
+            richTextBox1.Text = "";
+            DefinedStartingHand();
+            ShowCards();
+            Application.DoEvents();
             for (int? i = 0; i < 8; i++)
             {
                 for (int? j = 0; j < 2; j++)
                 {
                     anzSpiele = 0;
-                    while (anzSpiele <= 100)
+                    meinePunkte = 0;
+                    gegnerPunkte = 0;
+                    while (anzSpiele <= 1000)
                     {
                         anzSpiele++;
-                        DefinedStart();
+                        DefinedStartingHand();
                         var ersterZug = true;
                         //ResetCards();
                         //MixAllCards2Nachziehstapel();
@@ -577,30 +606,38 @@ namespace lost
                         Spielläuft = true;
                         while (Spielläuft)
                         {
+                            var letztesDrittel = false;
                             MeinZug = !MeinZug;
                             if (MeinZug)
                             {
+                                if (Nachziehstapel.Count(x => x != null) < 20)
+                                {
+                                    letztesDrittel = true;
+                                }
                                 if (ersterZug)
                                 {
-                                    NächsterZug(MeineHand, i, j);
+                                    NächsterZug(MeineHand, i, j); //sukzessive mit diesen Kombinationen beginnen
                                     ersterZug = false;
                                 }
                                 else
                                 {
-                                    NächsterZug(MeineHand, null,null);
+                                    NächsterZug(MeineHand, null,null, letztesDrittel); //Zufallszug
                                 }
                             }
                             else
                             {
-                                NächsterZug(GegnerHand,null,null);
+                                NächsterZug(GegnerHand,null,null, letztesDrittel);//Zufallszug
                             }
                         }
-                        //ShowCards();
-                        ZeigePunkte();
-                        labelGameNumber.Text = "Spiel #" + anzSpiele;                        
+                        //if (anzSpiele == 1)
+                        //{
+                        //    ShowCards();
+                        //}
+                        BerechnePunkte();
                     }
+                    richTextBox1.Text = richTextBox1.Text + $"Karte {i+1} auf {(j == 0 ? "Punkte" : "Ablage")} - Ich: {meinePunkte / anzSpiele}, Gegner: {gegnerPunkte / anzSpiele}" + Environment.NewLine;
+                    Application.DoEvents();
                 }
-                Application.DoEvents();
             }
         }
 
@@ -659,7 +696,6 @@ namespace lost
                 {
                     farbekurz = farbekurz.Substring(0, 1);
                 }
-
             }
 
             //string input = Interaction.InputBox("Karte", "Karte eingeben", farbekurz, Cursor.Position.X, Cursor.Position.Y - 100);
@@ -766,10 +802,10 @@ namespace lost
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            DefinedStart();
+            DefinedStartingHand();
         }
 
-        private void DefinedStart()
+        private void DefinedStartingHand()
         {
             ResetCards();
             MixAllCards2Nachziehstapel();
@@ -791,7 +827,7 @@ namespace lost
                     }
                 }
             }
-            ShowCards();
+            //ShowCards();
         }
         private void labelPunkteClick(MouseEventArgs me, Label lbl, Farbe f)
         {
