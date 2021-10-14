@@ -66,11 +66,15 @@
             this.button2 = new System.Windows.Forms.Button();
             this.labelGameNumber = new System.Windows.Forms.Label();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.button3 = new System.Windows.Forms.Button();
+            this.checkBoxShowOutput = new System.Windows.Forms.CheckBox();
+            this.checkBoxWaitAfterMoves = new System.Windows.Forms.CheckBox();
+            this.checkBoxMyMoves = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(229, 54);
+            this.button1.Location = new System.Drawing.Point(1034, 144);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
@@ -428,9 +432,9 @@
             // 
             // buttonNextMove
             // 
-            this.buttonNextMove.Location = new System.Drawing.Point(326, 54);
+            this.buttonNextMove.Location = new System.Drawing.Point(1034, 178);
             this.buttonNextMove.Name = "buttonNextMove";
-            this.buttonNextMove.Size = new System.Drawing.Size(127, 23);
+            this.buttonNextMove.Size = new System.Drawing.Size(75, 23);
             this.buttonNextMove.TabIndex = 33;
             this.buttonNextMove.Text = "Nächster Zug";
             this.buttonNextMove.UseVisualStyleBackColor = true;
@@ -468,7 +472,7 @@
             // 
             // labelGameNumber
             // 
-            this.labelGameNumber.Location = new System.Drawing.Point(635, 21);
+            this.labelGameNumber.Location = new System.Drawing.Point(623, 21);
             this.labelGameNumber.Name = "labelGameNumber";
             this.labelGameNumber.Size = new System.Drawing.Size(395, 14);
             this.labelGameNumber.TabIndex = 37;
@@ -482,11 +486,61 @@
             this.richTextBox1.TabIndex = 39;
             this.richTextBox1.Text = "";
             // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(487, 12);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.TabIndex = 40;
+            this.button3.Text = "weiter";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // checkBoxShowOutput
+            // 
+            this.checkBoxShowOutput.AutoSize = true;
+            this.checkBoxShowOutput.Checked = true;
+            this.checkBoxShowOutput.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxShowOutput.Location = new System.Drawing.Point(806, 33);
+            this.checkBoxShowOutput.Name = "checkBoxShowOutput";
+            this.checkBoxShowOutput.Size = new System.Drawing.Size(88, 17);
+            this.checkBoxShowOutput.TabIndex = 41;
+            this.checkBoxShowOutput.Text = "Zeige Output";
+            this.checkBoxShowOutput.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxWaitAfterMoves
+            // 
+            this.checkBoxWaitAfterMoves.AutoSize = true;
+            this.checkBoxWaitAfterMoves.Checked = true;
+            this.checkBoxWaitAfterMoves.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxWaitAfterMoves.Location = new System.Drawing.Point(806, 59);
+            this.checkBoxWaitAfterMoves.Name = "checkBoxWaitAfterMoves";
+            this.checkBoxWaitAfterMoves.Size = new System.Drawing.Size(135, 17);
+            this.checkBoxWaitAfterMoves.TabIndex = 42;
+            this.checkBoxWaitAfterMoves.Text = "Warte nach jedem Zug";
+            this.checkBoxWaitAfterMoves.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxMyMoves
+            // 
+            this.checkBoxMyMoves.AutoSize = true;
+            this.checkBoxMyMoves.Checked = true;
+            this.checkBoxMyMoves.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxMyMoves.Location = new System.Drawing.Point(806, 83);
+            this.checkBoxMyMoves.Name = "checkBoxMyMoves";
+            this.checkBoxMyMoves.Size = new System.Drawing.Size(171, 17);
+            this.checkBoxMyMoves.TabIndex = 43;
+            this.checkBoxMyMoves.Text = "Warte nur nach meinen Zügen";
+            this.checkBoxMyMoves.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1121, 791);
+            this.Controls.Add(this.checkBoxMyMoves);
+            this.Controls.Add(this.checkBoxWaitAfterMoves);
+            this.Controls.Add(this.checkBoxShowOutput);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.labelGameNumber);
             this.Controls.Add(this.button2);
@@ -574,6 +628,10 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label labelGameNumber;
         private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.CheckBox checkBoxShowOutput;
+        private System.Windows.Forms.CheckBox checkBoxWaitAfterMoves;
+        private System.Windows.Forms.CheckBox checkBoxMyMoves;
     }
 }
 

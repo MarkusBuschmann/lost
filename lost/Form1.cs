@@ -21,6 +21,7 @@ namespace lost
         public int anzSpiele = 0;
         public bool MeinZug = false;
         private bool Spielläuft = true;
+        private bool weiter = false;
         Karte[] Nachziehstapel = new Karte[65];
         Karte[] MeineHand = new Karte[8];
         Karte[] GegnerHand = new Karte[8];
@@ -261,9 +262,10 @@ namespace lost
             }
         }
 
-        private void NächsterZug(Karte[] kartenhand,int? kartenPos,int? wohin, bool letztesDrittel = false)
+        private void NächsterZug(Karte[] kartenhand,int? kartenPos,int? nächsteWohin, bool letztesDrittel = false)
         {
             int c;
+            ShowRichtextBox($"Meinzug: {MeinZug}");
             if (kartenPos == null)
             {
                 //Welche Karte soll gespielt werden
@@ -280,7 +282,7 @@ namespace lost
             }
             var nextAction = rnd.Next(2);
             //0 = Punkte,1 = Ablage
-            if (wohin == 0 || nextAction == 0)
+            if (nächsteWohin == 0 || nächsteWohin == null)
             {
                 var oberste = ErmittleObersteVonPunkteStapel((int)kartenhand[c].Farbe);
                 if (oberste == null || DarfKarteAufPunkte(kartenhand[c].Wert, oberste.Wert))
@@ -290,6 +292,7 @@ namespace lost
                     {
                         for (int i = 0; i < 8; i++)
                         {
+                            //Verdoppler
                             if (i != c && 
                                 kartenhand[i].Farbe == kartenhand[c].Farbe && 
                                 (oberste == null || DarfKarteAufPunkte(kartenhand[i].Wert, oberste.Wert)) &&
@@ -298,22 +301,32 @@ namespace lost
                                 c = i;
                                 break;
                             }
-                            else if (i != c &&
+                            //Kleinere Karte derselben Farbe nehmen
+                            if (i != c &&
                                 kartenhand[i].Farbe == kartenhand[c].Farbe &&
                                 (oberste == null || DarfKarteAufPunkte(kartenhand[i].Wert, oberste.Wert)) &&
                                 kartenhand[i].Wert < kartenhand[c].Wert)
                             {
+                                ShowRichtextBox($"c = i, c:{c} i:{i}", true);
                                 c = i;
                             }
                         }
                     }
                     LegeKarteAufPunkte(kartenhand[c]);
+                    ShowRichtextBox($"Lege Karte auf Punkte {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
+                    kartenhand[c] = null;
+                }
+                else
+                {
+                    LegeKarteAufAblage(kartenhand[c]);
+                    ShowRichtextBox($"ABLAGE {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
                     kartenhand[c] = null;
                 }
             }
             else
             {
                 LegeKarteAufAblage(kartenhand[c]);
+                ShowRichtextBox($"ABLAGE {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
                 kartenhand[c] = null;
             }
 
@@ -323,15 +336,63 @@ namespace lost
                 kartenhand[c] = ZieheObersteVonIrgendeinerAblage();
                 if (kartenhand[c] == null)
                 {
-                        kartenhand[c] = ZieheObersteVomNachziehstapel();
+                    kartenhand[c] = ZieheObersteVomNachziehstapel();
+                    if (kartenhand[c] == null)
+                    {
+                        ShowRichtextBox("SPIELENDE",true);
+                    }
+                    else
+                    {
+                        ShowRichtextBox($"Ziehe von Nachziehstapel {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
+                    }
+                }
+                else
+                {
+                    ShowRichtextBox($"Ziehe von ABLAGE {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
                 }
             }
             else
             {
-                    kartenhand[c] = ZieheObersteVomNachziehstapel();
+                kartenhand[c] = ZieheObersteVomNachziehstapel();
+                if (kartenhand[c] == null)
+                {
+                    ShowRichtextBox("SPIELENDE",true);
+                }
+                else
+                {
+                    ShowRichtextBox($"Ziehe von Nachziehstapel {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
+                }
             }
-            ShowCards();
-            Application.DoEvents();
+            if (checkBoxWaitAfterMoves.Checked)
+            {
+                if (checkBoxMyMoves.Checked && MeinZug || !checkBoxMyMoves.Checked)
+                {
+                    ShowCards();
+                    Application.DoEvents();
+                    while (!weiter)
+                    {
+                        Thread.Sleep(200);
+                        Application.DoEvents();
+                    }
+                    weiter = false;
+                }
+            }
+        }
+
+        private void ShowRichtextBox(string s,bool add = false)
+        {
+            if (checkBoxShowOutput.Checked)
+            {
+                if (add)
+                {
+                    richTextBox1.Text = richTextBox1.Text + Environment.NewLine + s;
+                }
+                else
+                {
+                    richTextBox1.Text = s;
+                }
+                Application.DoEvents();
+            }
         }
         private bool DarfKarteAufPunkte(int wertKarte, int wertPunkte)
         {
@@ -629,12 +690,9 @@ namespace lost
                                 NächsterZug(GegnerHand,null,null, letztesDrittel);//Zufallszug
                             }
                         }
-                        //if (anzSpiele == 1)
-                        //{
-                        //    ShowCards();
-                        //}
                         BerechnePunkte();
                     }
+
                     richTextBox1.Text = richTextBox1.Text + $"Karte {i+1} auf {(j == 0 ? "Punkte" : "Ablage")} - Ich: {meinePunkte / anzSpiele}, Gegner: {gegnerPunkte / anzSpiele}" + Environment.NewLine;
                     Application.DoEvents();
                 }
@@ -944,6 +1002,11 @@ namespace lost
         {
             MeinZug = false;
             LegeKartenAufPunktestapel(Farbe.Rot);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            weiter = true;
         }
     }
     public class Karte
