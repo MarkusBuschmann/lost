@@ -70,6 +70,10 @@
             this.checkBoxShowOutput = new System.Windows.Forms.CheckBox();
             this.checkBoxWaitAfterMoves = new System.Windows.Forms.CheckBox();
             this.checkBoxMyMoves = new System.Windows.Forms.CheckBox();
+            this.textBoxMinSum = new System.Windows.Forms.TextBox();
+            this.label32 = new System.Windows.Forms.Label();
+            this.label33 = new System.Windows.Forms.Label();
+            this.textBoxMinSumGegner = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // button1
@@ -442,10 +446,9 @@
             // 
             // labelTitle
             // 
-            this.labelTitle.AutoSize = true;
             this.labelTitle.Location = new System.Drawing.Point(623, 59);
             this.labelTitle.Name = "labelTitle";
-            this.labelTitle.Size = new System.Drawing.Size(53, 13);
+            this.labelTitle.Size = new System.Drawing.Size(146, 17);
             this.labelTitle.TabIndex = 34;
             this.labelTitle.Text = "Spiel läuft";
             // 
@@ -474,7 +477,7 @@
             // 
             this.labelGameNumber.Location = new System.Drawing.Point(623, 21);
             this.labelGameNumber.Name = "labelGameNumber";
-            this.labelGameNumber.Size = new System.Drawing.Size(395, 14);
+            this.labelGameNumber.Size = new System.Drawing.Size(146, 14);
             this.labelGameNumber.TabIndex = 37;
             this.labelGameNumber.Text = "Spiel #";
             // 
@@ -499,9 +502,7 @@
             // checkBoxShowOutput
             // 
             this.checkBoxShowOutput.AutoSize = true;
-            this.checkBoxShowOutput.Checked = true;
-            this.checkBoxShowOutput.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxShowOutput.Location = new System.Drawing.Point(806, 33);
+            this.checkBoxShowOutput.Location = new System.Drawing.Point(946, 48);
             this.checkBoxShowOutput.Name = "checkBoxShowOutput";
             this.checkBoxShowOutput.Size = new System.Drawing.Size(88, 17);
             this.checkBoxShowOutput.TabIndex = 41;
@@ -511,9 +512,7 @@
             // checkBoxWaitAfterMoves
             // 
             this.checkBoxWaitAfterMoves.AutoSize = true;
-            this.checkBoxWaitAfterMoves.Checked = true;
-            this.checkBoxWaitAfterMoves.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxWaitAfterMoves.Location = new System.Drawing.Point(806, 59);
+            this.checkBoxWaitAfterMoves.Location = new System.Drawing.Point(946, 74);
             this.checkBoxWaitAfterMoves.Name = "checkBoxWaitAfterMoves";
             this.checkBoxWaitAfterMoves.Size = new System.Drawing.Size(135, 17);
             this.checkBoxWaitAfterMoves.TabIndex = 42;
@@ -523,20 +522,56 @@
             // checkBoxMyMoves
             // 
             this.checkBoxMyMoves.AutoSize = true;
-            this.checkBoxMyMoves.Checked = true;
-            this.checkBoxMyMoves.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxMyMoves.Location = new System.Drawing.Point(806, 83);
+            this.checkBoxMyMoves.Location = new System.Drawing.Point(946, 98);
             this.checkBoxMyMoves.Name = "checkBoxMyMoves";
             this.checkBoxMyMoves.Size = new System.Drawing.Size(171, 17);
             this.checkBoxMyMoves.TabIndex = 43;
             this.checkBoxMyMoves.Text = "Warte nur nach meinen Zügen";
             this.checkBoxMyMoves.UseVisualStyleBackColor = true;
             // 
+            // textBoxMinSum
+            // 
+            this.textBoxMinSum.Location = new System.Drawing.Point(960, 6);
+            this.textBoxMinSum.Name = "textBoxMinSum";
+            this.textBoxMinSum.Size = new System.Drawing.Size(61, 20);
+            this.textBoxMinSum.TabIndex = 44;
+            this.textBoxMinSum.Text = "8";
+            // 
+            // label32
+            // 
+            this.label32.AutoSize = true;
+            this.label32.Location = new System.Drawing.Point(806, 9);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(148, 13);
+            this.label32.TabIndex = 45;
+            this.label32.Text = "Mind.-Summe in meiner Hand:";
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(807, 32);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(152, 13);
+            this.label33.TabIndex = 47;
+            this.label33.Text = "Mind.-Summe in Gegner-Hand:";
+            // 
+            // textBoxMinSumGegner
+            // 
+            this.textBoxMinSumGegner.Location = new System.Drawing.Point(961, 29);
+            this.textBoxMinSumGegner.Name = "textBoxMinSumGegner";
+            this.textBoxMinSumGegner.Size = new System.Drawing.Size(61, 20);
+            this.textBoxMinSumGegner.TabIndex = 46;
+            this.textBoxMinSumGegner.Text = "8";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1121, 791);
+            this.Controls.Add(this.label33);
+            this.Controls.Add(this.textBoxMinSumGegner);
+            this.Controls.Add(this.label32);
+            this.Controls.Add(this.textBoxMinSum);
             this.Controls.Add(this.checkBoxMyMoves);
             this.Controls.Add(this.checkBoxWaitAfterMoves);
             this.Controls.Add(this.checkBoxShowOutput);
@@ -632,6 +667,10 @@
         private System.Windows.Forms.CheckBox checkBoxShowOutput;
         private System.Windows.Forms.CheckBox checkBoxWaitAfterMoves;
         private System.Windows.Forms.CheckBox checkBoxMyMoves;
+        private System.Windows.Forms.TextBox textBoxMinSum;
+        private System.Windows.Forms.Label label32;
+        private System.Windows.Forms.Label label33;
+        private System.Windows.Forms.TextBox textBoxMinSumGegner;
     }
 }
 

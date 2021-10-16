@@ -37,7 +37,10 @@ namespace lost
 
         int meinePunkte = 0;
         int gegnerPunkte = 0;
-
+        int meineMaxPunkte = 0;
+        int gegnerMaxPunkte = 0;
+        int meinDurch = 0;
+        int gegnerDurch = 0;
 
         Random rnd;
 
@@ -262,6 +265,68 @@ namespace lost
             }
         }
 
+        private int ErmittleGesamtpunkteAufHandEinerFarbe(Farbe farbe)
+        {
+            var i = 0;
+
+            Karte[] Hand;
+            if (MeinZug)
+            {
+                Hand = MeineHand;
+            }
+            else
+            {
+                Hand = GegnerHand;
+            }
+            i = Hand.Where(x => x.Farbe == farbe && x.Wert < 11).Sum(x => x.Wert);
+            return i;
+        }
+
+        private int ErmittleGesamtpunkteAufPunktestapelEinerFarbe(Farbe farbe)
+        {
+            var i = 0;
+
+            Karte[,] PunkteStapel;
+            if (MeinZug)
+            {
+                PunkteStapel = MeinePunkte;
+            }
+            else
+            {
+                PunkteStapel = GegnerPunkte;
+            }
+            for (int j = 0; j < 13; j++)
+            {
+                if (PunkteStapel[(int)farbe, j] != null)
+                {
+                    i = i + PunkteStapel[(int)farbe, j].Wert;
+                }
+            }
+            return i;
+        }
+
+        private bool ErmittleObPunkteSchonBegonnen(Farbe farbe)
+        {
+
+            Karte[,] PunkteStapel;
+            if (MeinZug)
+            {
+                PunkteStapel = MeinePunkte;
+            }
+            else
+            {
+                PunkteStapel = GegnerPunkte;
+            }
+            for (int j = 0; j < 13; j++)
+            {
+                if (PunkteStapel[(int)farbe, j] != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private void NächsterZug(Karte[] kartenhand,int? kartenPos,int? nächsteWohin, bool letztesDrittel = false)
         {
             int c;
@@ -285,7 +350,12 @@ namespace lost
             if (nächsteWohin == 0 || nächsteWohin == null)
             {
                 var oberste = ErmittleObersteVonPunkteStapel((int)kartenhand[c].Farbe);
-                if (oberste == null || DarfKarteAufPunkte(kartenhand[c].Wert, oberste.Wert))
+                if ((oberste == null || DarfKarteAufPunkte(kartenhand[c].Wert, oberste.Wert)) &&
+                    (ErmittleObPunkteSchonBegonnen(kartenhand[c].Farbe) ||
+                    (MeinZug && ErmittleGesamtpunkteAufHandEinerFarbe(kartenhand[c].Farbe) >= int.Parse(textBoxMinSum.Text) ||
+                    !MeinZug && ErmittleGesamtpunkteAufHandEinerFarbe(kartenhand[c].Farbe) >= int.Parse(textBoxMinSumGegner.Text))
+                    && Nachziehstapel.Count(x => x != null) > 30)
+                    )
                 {
                     //Ermittle im 1. und 2. Drittel immer die niedrigste bzw die Verdoppler zuerst
                     if (!letztesDrittel)
@@ -421,7 +491,7 @@ namespace lost
 
         private void BerechnePunkte()
         {
-            int meinePunktelokal = 0;
+            int meinePunkteDiesesSpiel = 0;
             for (int i = 0; i < 5; i++)
             {
                 int sum = 0;
@@ -445,14 +515,14 @@ namespace lost
                 if (anz > 0)
                 {
                     var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
-                    meinePunktelokal = meinePunktelokal + erg;
+                    meinePunkteDiesesSpiel = meinePunkteDiesesSpiel + erg;
                 }
             }
             //if (meinePunktelokal > 40)
             //{
             //    stopGameLoop = true;
             //}
-            int gegnerPunktelokal = 0;
+            int gegnerPunkteDiesesSpiel = 0;
             for (int i = 0; i < 5; i++)
             {
                 int sum = 0;
@@ -476,7 +546,7 @@ namespace lost
                 if (anz > 0)
                 {
                     var erg = (sum - 20 + (anz >= 8 ? 20 : 0)) * (1 + anzVerdoppler);
-                    gegnerPunktelokal = gegnerPunktelokal + erg;
+                    gegnerPunkteDiesesSpiel = gegnerPunkteDiesesSpiel + erg;
                 }
             }
             //if (gegnerPunktelokal > 40)
@@ -484,10 +554,17 @@ namespace lost
             //    stopGameLoop = true;
             //}
 
-            meinePunkte = meinePunkte + meinePunktelokal;
-            gegnerPunkte = gegnerPunkte + gegnerPunktelokal;
-
-            labelTitle.Text = $"Ich: {meinePunktelokal}, Gegner: {gegnerPunktelokal}";
+            meinePunkte = meinePunkte + meinePunkteDiesesSpiel;
+            gegnerPunkte = gegnerPunkte + gegnerPunkteDiesesSpiel;
+            if (meinePunkteDiesesSpiel > meineMaxPunkte)
+            {
+                meineMaxPunkte = meinePunkteDiesesSpiel;
+            }
+            if (gegnerPunkteDiesesSpiel > gegnerMaxPunkte)
+            {
+                gegnerMaxPunkte = gegnerPunkteDiesesSpiel;
+            }
+            labelTitle.Text = $"Ich: {meinePunkteDiesesSpiel}, Gegner: {gegnerPunkteDiesesSpiel}";
         }
 
         private void buttonNextMove_Click(object sender, EventArgs e)
@@ -642,18 +719,25 @@ namespace lost
 
         private void StartGameFromThisPoint(object sender, EventArgs e)
         {
-            richTextBox1.Text = "";
+            var runde = 0;
+            var anzSpieleJeFall = 1000;
+            var meineGesPunkte = 0;
+            var gegnerGesPunkte = 0;
             DefinedStartingHand();
             ShowCards();
             Application.DoEvents();
+            richTextBox1.Text = $"{anzSpieleJeFall} Spiele je Fall" +  Environment.NewLine;
             for (int? i = 0; i < 8; i++)
             {
                 for (int? j = 0; j < 2; j++)
                 {
+                    runde++;
                     anzSpiele = 0;
                     meinePunkte = 0;
                     gegnerPunkte = 0;
-                    while (anzSpiele <= 1000)
+                    meineMaxPunkte = 0;
+                    gegnerMaxPunkte = 0;
+                    while (anzSpiele <= anzSpieleJeFall)
                     {
                         anzSpiele++;
                         DefinedStartingHand();
@@ -662,7 +746,7 @@ namespace lost
                         //MixAllCards2Nachziehstapel();
                         //GetStartingCards();
                         GetStartingCards(true); //nur für Gegner
-                        MeinZug = false;
+                        MeinZug = true;
 
                         Spielläuft = true;
                         while (Spielläuft)
@@ -693,10 +777,14 @@ namespace lost
                         BerechnePunkte();
                     }
 
-                    richTextBox1.Text = richTextBox1.Text + $"Karte {i+1} auf {(j == 0 ? "Punkte" : "Ablage")} - Ich: {meinePunkte / anzSpiele}, Gegner: {gegnerPunkte / anzSpiele}" + Environment.NewLine;
+                    richTextBox1.Text = richTextBox1.Text + $"Karte {i+1} auf {(j == 0 ? "Punkte" : "Ablage")} ; Ich: {meinePunkte / anzSpiele}, Gegner: {gegnerPunkte / anzSpiele}" 
+                        + $"; Meine Max: {meineMaxPunkte}, GegnerMax: {gegnerMaxPunkte}" + Environment.NewLine;
+                    meineGesPunkte = meineGesPunkte + meinePunkte;
+                    gegnerGesPunkte = gegnerGesPunkte + gegnerPunkte;
                     Application.DoEvents();
                 }
             }
+            richTextBox1.Text = richTextBox1.Text + $"Gesamtdurchschnitt: Mein: {meineGesPunkte / 16 / anzSpieleJeFall}, Gegner: {gegnerGesPunkte / 16 / anzSpieleJeFall}";
         }
 
         private static DialogResult ShowInputDialog(ref string input, int x, int y)
