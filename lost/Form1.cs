@@ -35,12 +35,8 @@ namespace lost
         Label[] GegnerPunkteLabel = new Label[5];
         Label[] AblageLabel = new Label[5];
 
-        int meinePunkte = 0;
-        int gegnerPunkte = 0;
         int meineMaxPunkte = 0;
         int gegnerMaxPunkte = 0;
-        int meinDurch = 0;
-        int gegnerDurch = 0;
 
         Random rnd;
 
@@ -437,14 +433,14 @@ namespace lost
             {
                 if (checkBoxMyMoves.Checked && MeinZug || !checkBoxMyMoves.Checked)
                 {
-                    ShowCards();
-                    Application.DoEvents();
-                    while (!weiter)
-                    {
-                        Thread.Sleep(200);
-                        Application.DoEvents();
-                    }
-                    weiter = false;
+                    //ShowCards();
+                    //Application.DoEvents();
+                    //while (!weiter)
+                    //{
+                    //    Thread.Sleep(200);
+                    //    Application.DoEvents();
+                    //}
+                    //weiter = false;
                 }
             }
         }
@@ -489,7 +485,7 @@ namespace lost
             ShowCards();
         }
 
-        private void BerechnePunkte()
+        private void BerechnePunkte(ref int meinePunkteInDiesemTyp, ref int gegnerPunkteInDiesemTyp)
         {
             int meinePunkteDiesesSpiel = 0;
             for (int i = 0; i < 5; i++)
@@ -554,8 +550,8 @@ namespace lost
             //    stopGameLoop = true;
             //}
 
-            meinePunkte = meinePunkte + meinePunkteDiesesSpiel;
-            gegnerPunkte = gegnerPunkte + gegnerPunkteDiesesSpiel;
+            meinePunkteInDiesemTyp = meinePunkteInDiesemTyp + meinePunkteDiesesSpiel;
+            gegnerPunkteInDiesemTyp = gegnerPunkteInDiesemTyp + gegnerPunkteDiesesSpiel;
             if (meinePunkteDiesesSpiel > meineMaxPunkte)
             {
                 meineMaxPunkte = meinePunkteDiesesSpiel;
@@ -584,7 +580,7 @@ namespace lost
                 }
             //}
             ShowCards();
-            BerechnePunkte();
+            //BerechnePunkte(ref _i, ref _j);
         }
 
         private void ResetCards()
@@ -714,27 +710,30 @@ namespace lost
                     GegnerPunkteLabel[i].Text = GegnerPunkteLabel[i].Text.Substring(0, GegnerPunkteLabel[i].Text.Length - 1);
                 }
             }
-            BerechnePunkte();
+            //BerechnePunkte();
         }
 
         private void StartGameFromThisPoint(object sender, EventArgs e)
         {
             var runde = 0;
-            var anzSpieleJeFall = 1000;
+            var anzSpieleJeFall = int.Parse(textBoxLoops.Text);
             var meineGesPunkte = 0;
             var gegnerGesPunkte = 0;
             DefinedStartingHand();
             ShowCards();
+            Dictionary<string, double> ausgabeDict = new Dictionary<string, double>();
+            richTextBox1.Text = $"{anzSpieleJeFall} Spiele je Fall" + Environment.NewLine + Environment.NewLine;
             Application.DoEvents();
-            richTextBox1.Text = $"{anzSpieleJeFall} Spiele je Fall" +  Environment.NewLine;
-            for (int? i = 0; i < 8; i++)
+            for (int? j = 0; j < 2; j++)
             {
-                for (int? j = 0; j < 2; j++)
+                for (int? i = 0; i < 8; i++)
                 {
+                    labelType.Text = $"{runde * anzSpieleJeFall} Spiele simuliert";
+                    Application.DoEvents();
                     runde++;
                     anzSpiele = 0;
-                    meinePunkte = 0;
-                    gegnerPunkte = 0;
+                    var meinePunkteInDiesemTyp = 0;
+                    var gegnerPunkteInDiesemTyp = 0;
                     meineMaxPunkte = 0;
                     gegnerMaxPunkte = 0;
                     while (anzSpiele <= anzSpieleJeFall)
@@ -746,7 +745,7 @@ namespace lost
                         //MixAllCards2Nachziehstapel();
                         //GetStartingCards();
                         GetStartingCards(true); //nur für Gegner
-                        MeinZug = true;
+                        MeinZug = !checkBoxIStart.Checked;
 
                         Spielläuft = true;
                         while (Spielläuft)
@@ -774,17 +773,42 @@ namespace lost
                                 NächsterZug(GegnerHand,null,null, letztesDrittel);//Zufallszug
                             }
                         }
-                        BerechnePunkte();
+                        BerechnePunkte(ref meinePunkteInDiesemTyp, ref gegnerPunkteInDiesemTyp);
                     }
 
-                    richTextBox1.Text = richTextBox1.Text + $"Karte {i+1} auf {(j == 0 ? "Punkte" : "Ablage")} ; Ich: {meinePunkte / anzSpiele}, Gegner: {gegnerPunkte / anzSpiele}" 
+                    var s = $"Karte {i + 1} auf {(j == 0 ? "Punkte" : "Ablage")} ; Diff: {(double)meinePunkteInDiesemTyp / anzSpiele - (double)gegnerPunkteInDiesemTyp / anzSpiele:0.#}, " +
+                        $"Ich: {(double)meinePunkteInDiesemTyp / anzSpiele:0.#}, Gegner: {(double)gegnerPunkteInDiesemTyp / anzSpiele:0.#}"
                         + $"; Meine Max: {meineMaxPunkte}, GegnerMax: {gegnerMaxPunkte}" + Environment.NewLine;
-                    meineGesPunkte = meineGesPunkte + meinePunkte;
-                    gegnerGesPunkte = gegnerGesPunkte + gegnerPunkte;
+                    ausgabeDict.Add(s, (double)meinePunkteInDiesemTyp / anzSpiele - (double)gegnerPunkteInDiesemTyp / anzSpiele);
+                    meineGesPunkte = meineGesPunkte + meinePunkteInDiesemTyp;
+                    gegnerGesPunkte = gegnerGesPunkte + gegnerPunkteInDiesemTyp;
                     Application.DoEvents();
                 }
             }
-            richTextBox1.Text = richTextBox1.Text + $"Gesamtdurchschnitt: Mein: {meineGesPunkte / 16 / anzSpieleJeFall}, Gegner: {gegnerGesPunkte / 16 / anzSpieleJeFall}";
+            foreach (var a in ausgabeDict)
+            {
+                if (a.Value == ausgabeDict.Min(y => y.Value))
+                {
+                    richTextBox1.SelectionColor = Color.Red;
+                    //richTextBox1.SelectionFont = new Font(richTextBox1.Font, FontStyle.Bold); 
+                    richTextBox1.AppendText(a.Key);
+                }
+                else if (a.Value == ausgabeDict.Max(y => y.Value))
+                {
+                    richTextBox1.SelectionColor = Color.Green;
+                    richTextBox1.AppendText(a.Key);
+                }
+                else
+                {
+                    richTextBox1.SelectionColor = DefaultForeColor;
+                    richTextBox1.AppendText(a.Key);
+                }
+                if (a.Key.StartsWith("Karte 8"))
+                {
+                    richTextBox1.AppendText(Environment.NewLine);
+                }
+            }
+            richTextBox1.AppendText (Environment.NewLine +  $"Gesamtdurchschnitt: Mein: {(meineGesPunkte / 16.0 / anzSpieleJeFall):0.#} Gegner: {(gegnerGesPunkte / 16.0 / anzSpieleJeFall):0.#}");
         }
 
         private static DialogResult ShowInputDialog(ref string input, int x, int y)
@@ -954,15 +978,36 @@ namespace lost
         private void DefinedStartingHand()
         {
             ResetCards();
+
             MixAllCards2Nachziehstapel();
-            MeineHand[0] = new Karte() { Farbe = Farbe.Gelb, Wert = 3 };
-            MeineHand[1] = new Karte() { Farbe = Farbe.Gelb, Wert = 6 };
-            MeineHand[2] = new Karte() { Farbe = Farbe.Gelb, Wert = 10 };
-            MeineHand[3] = new Karte() { Farbe = Farbe.Blau, Wert = 4 };
-            MeineHand[4] = new Karte() { Farbe = Farbe.Blau, Wert = 7 };
-            MeineHand[5] = new Karte() { Farbe = Farbe.Grün, Wert = 11 };
-            MeineHand[6] = new Karte() { Farbe = Farbe.Grün, Wert = 5 };
-            MeineHand[7] = new Karte() { Farbe = Farbe.Rot, Wert = 2 };
+
+            MeineHand[0] = new Karte() { Farbe = Farbe.Weiß, Wert = 11 };
+            MeineHand[1] = new Karte() { Farbe = Farbe.Weiß, Wert = 2 };
+            MeineHand[2] = new Karte() { Farbe = Farbe.Weiß, Wert = 7 };
+            MeineHand[3] = new Karte() { Farbe = Farbe.Weiß, Wert = 8 };
+            MeineHand[4] = new Karte() { Farbe = Farbe.Weiß, Wert = 9 };
+            MeineHand[5] = new Karte() { Farbe = Farbe.Grün, Wert = 2 };
+            MeineHand[6] = new Karte() { Farbe = Farbe.Grün, Wert = 4 };
+            MeineHand[7] = new Karte() { Farbe = Farbe.Grün, Wert = 10 };
+
+            //MeineHand[0] = new Karte() { Farbe = Farbe.Gelb, Wert = 9 };
+            //MeineHand[1] = new Karte() { Farbe = Farbe.Blau, Wert = 11 };
+            //MeineHand[2] = new Karte() { Farbe = Farbe.Weiß, Wert = 7 };
+            //MeineHand[3] = new Karte() { Farbe = Farbe.Weiß, Wert = 8 };
+            //MeineHand[4] = new Karte() { Farbe = Farbe.Weiß, Wert = 9 };
+            //MeineHand[5] = new Karte() { Farbe = Farbe.Grün, Wert = 4 };
+            //MeineHand[6] = new Karte() { Farbe = Farbe.Rot, Wert = 11 };
+            //MeineHand[7] = new Karte() { Farbe = Farbe.Rot, Wert = 2 };
+
+            //MeineHand[0] = new Karte() { Farbe = Farbe.Gelb, Wert = 3 };
+            //MeineHand[1] = new Karte() { Farbe = Farbe.Gelb, Wert = 6 };
+            //MeineHand[2] = new Karte() { Farbe = Farbe.Gelb, Wert = 10 };
+            //MeineHand[3] = new Karte() { Farbe = Farbe.Blau, Wert = 4 };
+            //MeineHand[4] = new Karte() { Farbe = Farbe.Blau, Wert = 7 };
+            //MeineHand[5] = new Karte() { Farbe = Farbe.Grün, Wert = 11 };
+            //MeineHand[6] = new Karte() { Farbe = Farbe.Grün, Wert = 5 };
+            //MeineHand[7] = new Karte() { Farbe = Farbe.Rot, Wert = 2 };
+
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 65; j++)
