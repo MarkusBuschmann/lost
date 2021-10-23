@@ -25,6 +25,8 @@ namespace lost
         Karte[] Nachziehstapel = new Karte[65];
         Karte[] MeineHand = new Karte[8];
         Karte[] GegnerHand = new Karte[8];
+        Karte[] MeineStartHand = new Karte[8];
+        Karte[] GegnerStartHand = new Karte[8];
         Karte[,] MeinePunkte = new Karte[5, 13];
         Karte[,] GegnerPunkte = new Karte[5, 13];
         Karte[,] Ablage = new Karte[5, 13];
@@ -203,6 +205,7 @@ namespace lost
                 for (int i = 0; i < 8; i++)
                 {
                     MeineHand[i] = ZieheObersteVomNachziehstapel();
+                    MeineStartHand[i] = MeineHand[i];
                     //Debug.Write($"{MeineHand[i].Farbe}{MeineHand[i].Wert} ");
                 }
             }
@@ -211,6 +214,7 @@ namespace lost
             for (int i = 0; i < 8; i++)
             {
                 GegnerHand[i] = ZieheObersteVomNachziehstapel();
+                GegnerStartHand[i] = GegnerHand[i];
                 //Debug.Write($"{GegnerHand[i].Farbe}{GegnerHand[i].Wert} ");
             }
             //Debug.WriteLine("");
@@ -482,6 +486,7 @@ namespace lost
             ResetCards();
             MixAllCards2Nachziehstapel();
             //GetStartingCards();
+            GetStartingCards(false);
             ShowCards();
         }
 
@@ -713,14 +718,41 @@ namespace lost
             //BerechnePunkte();
         }
 
+        private void LetzteStarthandWiederverwenden()
+        {
+            ResetCards();
+            MixAllCards2Nachziehstapel();
+            for (int i = 0; i < 8; i++)
+            {
+                MeineHand[i] = MeineStartHand[i];
+                for (int j = 0; j < Nachziehstapel.Length; j++)
+                {
+                    if (Nachziehstapel[j] != null && Nachziehstapel[j].Farbe == MeineHand[i].Farbe && Nachziehstapel[j].Wert == MeineHand[i].Wert)
+                    {
+                        Nachziehstapel[j] = null;
+                    }
+                }
+            }
+            for (int i = 0; i < 8; i++)
+            {
+                GegnerHand[i] = GegnerStartHand[i];
+                for (int j = 0; j < Nachziehstapel.Length; j++)
+                {
+                    if (Nachziehstapel[j] != null && Nachziehstapel[j].Farbe == GegnerHand[i].Farbe && Nachziehstapel[j].Wert == GegnerHand[i].Wert)
+                    {
+                        Nachziehstapel[j] = null;
+                    }
+                }
+            }
+        }
+
         private void StartGameFromThisPoint(object sender, EventArgs e)
         {
             var runde = 0;
             var anzSpieleJeFall = int.Parse(textBoxLoops.Text);
             var meineGesPunkte = 0;
             var gegnerGesPunkte = 0;
-            DefinedStartingHand();
-            ShowCards();
+            //DefinedStartingHand();
             Dictionary<string, double> ausgabeDict = new Dictionary<string, double>();
             richTextBox1.Text = $"{anzSpieleJeFall} Spiele je Fall" + Environment.NewLine + Environment.NewLine;
             Application.DoEvents();
@@ -728,9 +760,8 @@ namespace lost
             {
                 for (int? i = 0; i < 8; i++)
                 {
-                    labelType.Text = $"{runde * anzSpieleJeFall} Spiele simuliert";
+                    labelType.Text = $"{++runde * anzSpieleJeFall} Spiele simuliert";
                     Application.DoEvents();
-                    runde++;
                     anzSpiele = 0;
                     var meinePunkteInDiesemTyp = 0;
                     var gegnerPunkteInDiesemTyp = 0;
@@ -739,12 +770,14 @@ namespace lost
                     while (anzSpiele <= anzSpieleJeFall)
                     {
                         anzSpiele++;
-                        DefinedStartingHand();
                         var ersterZug = true;
+                        LetzteStarthandWiederverwenden();
+                        //ShowCards();
                         //ResetCards();
                         //MixAllCards2Nachziehstapel();
-                        //GetStartingCards();
-                        GetStartingCards(true); //nur für Gegner
+                        //DefinedStartingHand();
+                        //GetStartingCards(false);
+                        //GetStartingCards(true); //nur für Gegner
                         MeinZug = !checkBoxIStart.Checked;
 
                         Spielläuft = true;
@@ -782,7 +815,7 @@ namespace lost
                     ausgabeDict.Add(s, (double)meinePunkteInDiesemTyp / anzSpiele - (double)gegnerPunkteInDiesemTyp / anzSpiele);
                     meineGesPunkte = meineGesPunkte + meinePunkteInDiesemTyp;
                     gegnerGesPunkte = gegnerGesPunkte + gegnerPunkteInDiesemTyp;
-                    Application.DoEvents();
+                    //Application.DoEvents();
                 }
             }
             foreach (var a in ausgabeDict)
