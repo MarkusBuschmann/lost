@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Linq;
 using Microsoft.VisualBasic;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace lost
 {
@@ -37,9 +38,10 @@ namespace lost
         Label[] GegnerPunkteLabel = new Label[5];
         Label[] AblageLabel = new Label[5];
 
+        bool alleAblagenSindLeer = true;
         int meineMaxPunkte = 0;
         int gegnerMaxPunkte = 0;
-
+        int kartenAufNachziehstapelBisZuDenenDieKleinerenWerteGespieltWerden;
         Random rnd;
 
         public Form1()
@@ -164,7 +166,7 @@ namespace lost
         private Karte ZieheObersteVonIrgendeinerAblage()
         {
             //Kein Ablagestapel enthält eine Karte
-            if (Ablage[0, 0] == null && Ablage[1, 0] == null && Ablage[2, 0] == null && Ablage[3, 0] == null && Ablage[4, 0] == null)
+            if (alleAblagenSindLeer)
             {
                 return null;
             }
@@ -177,10 +179,10 @@ namespace lost
                 farbenSchonProbiert[farbe] = true;
                 for (int pos = 12; pos >= 0; pos--)
                 {
+                    var oberste = ErmittleObersteVonPunkteStapel(farbe);
                     if (Ablage[farbe, pos] != null)
                     {
                         //Nur ziehen, wenn anlegbar
-                        var oberste = ErmittleObersteVonPunkteStapel(farbe);
                         if (oberste != null && DarfKarteAufPunkte(Ablage[farbe, pos].Wert, oberste.Wert))
                         { 
                             k = Ablage[farbe, pos];
@@ -222,11 +224,12 @@ namespace lost
 
         private void LegeKarteAufAblage(Karte karte)
         {
-            for (int i = 0; i <= 12; i++)
+            for (int i = 0; i < 13; i++)
             {
                 if (Ablage[(int)karte.Farbe,i] == null)
                 {
                     Ablage[(int)karte.Farbe,i] = karte;
+                    alleAblagenSindLeer = false;
                     break;
                 }
             }
@@ -245,41 +248,40 @@ namespace lost
 
         private void LegeKarteAufPunkte(Karte karte)
         {
-            Karte[,] Punktestapel;
             if (MeinZug)
             {
-                Punktestapel = MeinePunkte;
+                for (int i = 0; i < 13; i++)
+                {
+                    if (MeinePunkte[(int)karte.Farbe, i] == null)
+                    {
+                        MeinePunkte[(int)karte.Farbe, i] = karte;
+                        break;
+                    }
+                }
             }
             else
             {
-                Punktestapel = GegnerPunkte;
-            }
-
-            for (int i = 0; i < 13; i++)
-            {
-                if (Punktestapel[(int)karte.Farbe, i] == null)
+                for (int i = 0; i < 13; i++)
                 {
-                    Punktestapel[(int)karte.Farbe, i] = karte;
-                    break;
+                    if (GegnerPunkte[(int)karte.Farbe, i] == null)
+                    {
+                        GegnerPunkte[(int)karte.Farbe, i] = karte;
+                        break;
+                    }
                 }
             }
         }
 
         private int ErmittleGesamtpunkteAufHandEinerFarbe(Farbe farbe)
         {
-            var i = 0;
-
-            Karte[] Hand;
             if (MeinZug)
             {
-                Hand = MeineHand;
+                return MeineHand.Where(x => x.Farbe == farbe && x.Wert < 11).Sum(x => x.Wert);
             }
             else
             {
-                Hand = GegnerHand;
+                return GegnerHand.Where(x => x.Farbe == farbe && x.Wert < 11).Sum(x => x.Wert);
             }
-            i = Hand.Where(x => x.Farbe == farbe && x.Wert < 11).Sum(x => x.Wert);
-            return i;
         }
 
         private int ErmittleGesamtpunkteAufPunktestapelEinerFarbe(Farbe farbe)
@@ -307,148 +309,159 @@ namespace lost
 
         private bool ErmittleObPunkteSchonBegonnen(Farbe farbe)
         {
-
-            Karte[,] PunkteStapel;
             if (MeinZug)
             {
-                PunkteStapel = MeinePunkte;
+                for (int j = 0; j < 13; j++)
+                {
+                    if (MeinePunkte[(int)farbe, j] != null)
+                    {
+                        return true;
+                    }
+                }
             }
             else
             {
-                PunkteStapel = GegnerPunkte;
-            }
-            for (int j = 0; j < 13; j++)
-            {
-                if (PunkteStapel[(int)farbe, j] != null)
+                for (int j = 0; j < 13; j++)
                 {
-                    return true;
+                    if (GegnerPunkte[(int)farbe, j] != null)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
-        private void NächsterZug(Karte[] kartenhand,int? kartenPos,int? nächsteWohin, bool letztesDrittel = false)
+        private void NächsterZug(Karte[] kartenhand,int? kartenPos,int? nächsteWohin)
         {
-            int c;
-            ShowRichtextBox($"Meinzug: {MeinZug}");
+            int nächsteKartenPos;
+            ShowRichtextBox(new string('-',40),true);
+            ShowRichtextBox($"{(MeinZug ? "ICH" : "GEGNER")}",true);
             if (kartenPos == null)
             {
                 //Welche Karte soll gespielt werden
-                c = rnd.Next(8);
+                nächsteKartenPos = rnd.Next(8);
                 //Gibt es die gezogene Karte überhaupt noch
-                while (kartenhand[c] == null)
+                while (kartenhand[nächsteKartenPos] == null)
                 {
-                    c = rnd.Next(8);
+                    nächsteKartenPos = rnd.Next(8);
                 }
             }
             else
             {
-                c = (int)kartenPos;
+                nächsteKartenPos = (int)kartenPos;
             }
-            var nextAction = rnd.Next(2);
             //0 = Punkte,1 = Ablage
             if (nächsteWohin == 0 || nächsteWohin == null)
             {
-                var oberste = ErmittleObersteVonPunkteStapel((int)kartenhand[c].Farbe);
-                if ((oberste == null || DarfKarteAufPunkte(kartenhand[c].Wert, oberste.Wert)) &&
-                    (ErmittleObPunkteSchonBegonnen(kartenhand[c].Farbe) ||
-                    (MeinZug && ErmittleGesamtpunkteAufHandEinerFarbe(kartenhand[c].Farbe) >= int.Parse(textBoxMinSum.Text) ||
-                    !MeinZug && ErmittleGesamtpunkteAufHandEinerFarbe(kartenhand[c].Farbe) >= int.Parse(textBoxMinSumGegner.Text))
-                    && Nachziehstapel.Count(x => x != null) > 30)
-                    )
+                var oberste = ErmittleObersteVonPunkteStapel((int)kartenhand[nächsteKartenPos].Farbe);
+                if ((oberste == null || DarfKarteAufPunkte(kartenhand[nächsteKartenPos].Wert, oberste.Wert)) &&
+                    (ErmittleObPunkteSchonBegonnen(kartenhand[nächsteKartenPos].Farbe) ||
+                    MeinZug && ErmittleGesamtpunkteAufHandEinerFarbe(kartenhand[nächsteKartenPos].Farbe) >= int.Parse(textBoxMinSum.Text) ||
+                    !MeinZug && ErmittleGesamtpunkteAufHandEinerFarbe(kartenhand[nächsteKartenPos].Farbe) >= int.Parse(textBoxMinSumGegner.Text)                    
+                    && Nachziehstapel.Count(x => x != null) > 30 
+                    ))
                 {
                     //Ermittle im 1. und 2. Drittel immer die niedrigste bzw die Verdoppler zuerst
-                    if (!letztesDrittel)
+                    if (Nachziehstapel.Length > kartenAufNachziehstapelBisZuDenenDieKleinerenWerteGespieltWerden)
                     {
                         for (int i = 0; i < 8; i++)
                         {
+                            var darfKarteAufPunkte = oberste == null || DarfKarteAufPunkte(kartenhand[i].Wert, oberste.Wert);
                             //Verdoppler
-                            if (i != c && 
-                                kartenhand[i].Farbe == kartenhand[c].Farbe && 
-                                (oberste == null || DarfKarteAufPunkte(kartenhand[i].Wert, oberste.Wert)) &&
+                            if (i != nächsteKartenPos && 
+                                kartenhand[i].Farbe == kartenhand[nächsteKartenPos].Farbe && 
+                                darfKarteAufPunkte &&
                                 (kartenhand[i].Wert > 10))
                             {
-                                c = i;
+                                nächsteKartenPos = i;
                                 break;
                             }
                             //Kleinere Karte derselben Farbe nehmen
-                            if (i != c &&
-                                kartenhand[i].Farbe == kartenhand[c].Farbe &&
-                                (oberste == null || DarfKarteAufPunkte(kartenhand[i].Wert, oberste.Wert)) &&
-                                kartenhand[i].Wert < kartenhand[c].Wert)
+                            if (i != nächsteKartenPos &&
+                                kartenhand[i].Farbe == kartenhand[nächsteKartenPos].Farbe &&
+                                darfKarteAufPunkte &&
+                                kartenhand[i].Wert < kartenhand[nächsteKartenPos].Wert)
                             {
-                                ShowRichtextBox($"c = i, c:{c} i:{i}", true);
-                                c = i;
+                                ShowRichtextBox($"c = i, c:{nächsteKartenPos} i:{i}", true);
+                                nächsteKartenPos = i;
                             }
                         }
                     }
-                    LegeKarteAufPunkte(kartenhand[c]);
-                    ShowRichtextBox($"Lege Karte auf Punkte {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
-                    kartenhand[c] = null;
+                    LegeKarteAufPunkte(kartenhand[nächsteKartenPos]);
+                    ShowRichtextBox($"Auf Punkte: {kartenhand[nächsteKartenPos].Farbe} {kartenhand[nächsteKartenPos].Wert}",true);
+                    kartenhand[nächsteKartenPos] = null;
                 }
                 else
                 {
-                    LegeKarteAufAblage(kartenhand[c]);
-                    ShowRichtextBox($"ABLAGE {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
-                    kartenhand[c] = null;
+                    LegeKarteAufAblage(kartenhand[nächsteKartenPos]);
+                    ShowRichtextBox($"Auf Ablage: {kartenhand[nächsteKartenPos].Farbe} {kartenhand[nächsteKartenPos].Wert}",true);
+                    kartenhand[nächsteKartenPos] = null;
                 }
             }
             else
             {
-                LegeKarteAufAblage(kartenhand[c]);
-                ShowRichtextBox($"ABLAGE {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
-                kartenhand[c] = null;
+                LegeKarteAufAblage(kartenhand[nächsteKartenPos]);
+                ShowRichtextBox($"Auf Ablage: {kartenhand[nächsteKartenPos].Farbe} {kartenhand[nächsteKartenPos].Wert}",true);
+                kartenhand[nächsteKartenPos] = null;
             }
 
-            nextAction = rnd.Next(2);
-            if (nextAction == 0)
+            if (rnd.Next(2) == 0)
             {
-                kartenhand[c] = ZieheObersteVonIrgendeinerAblage();
-                if (kartenhand[c] == null)
+                kartenhand[nächsteKartenPos] = ZieheObersteVonIrgendeinerAblage();
+                if (kartenhand[nächsteKartenPos] == null)
                 {
-                    kartenhand[c] = ZieheObersteVomNachziehstapel();
-                    if (kartenhand[c] == null)
+                    kartenhand[nächsteKartenPos] = ZieheObersteVomNachziehstapel();
+                    if (kartenhand[nächsteKartenPos] == null)
                     {
                         ShowRichtextBox("SPIELENDE",true);
                     }
                     else
                     {
-                        ShowRichtextBox($"Ziehe von Nachziehstapel {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
+                        ShowRichtextBox($"Von Nachziehstapel {kartenhand[nächsteKartenPos].Farbe} {kartenhand[nächsteKartenPos].Wert}",true);
                     }
                 }
                 else
                 {
-                    ShowRichtextBox($"Ziehe von ABLAGE {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
+                    ShowRichtextBox($"Von Ablage: {kartenhand[nächsteKartenPos].Farbe} {kartenhand[nächsteKartenPos].Wert}",true);
                 }
             }
             else
             {
-                kartenhand[c] = ZieheObersteVomNachziehstapel();
-                if (kartenhand[c] == null)
+                kartenhand[nächsteKartenPos] = ZieheObersteVomNachziehstapel();
+                if (kartenhand[nächsteKartenPos] == null)
                 {
                     ShowRichtextBox("SPIELENDE",true);
                 }
                 else
                 {
-                    ShowRichtextBox($"Ziehe von Nachziehstapel {kartenhand[c].Farbe} {kartenhand[c].Wert}",true);
+                    ShowRichtextBox($"Von Nachziehstapel: {kartenhand[nächsteKartenPos].Farbe} {kartenhand[nächsteKartenPos].Wert}",true);
                 }
             }
             if (checkBoxWaitAfterMoves.Checked)
             {
-                if (checkBoxMyMoves.Checked && MeinZug || !checkBoxMyMoves.Checked)
+                ShowCards();
+                Application.DoEvents();
+                while (!weiter)
                 {
-                    //ShowCards();
-                    //Application.DoEvents();
-                    //while (!weiter)
-                    //{
-                    //    Thread.Sleep(200);
-                    //    Application.DoEvents();
-                    //}
-                    //weiter = false;
+                    Thread.Sleep(200);
+                    Application.DoEvents();
                 }
+                weiter = false;
             }
         }
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int wMsg, IntPtr wParam, IntPtr lParam);
+        private const int WM_VSCROLL = 277;
+        private const int SB_PAGEBOTTOM = 7;
+
+        internal static void ScrollToBottom(RichTextBox richTextBox)
+        {
+            SendMessage(richTextBox.Handle, WM_VSCROLL, (IntPtr)SB_PAGEBOTTOM, IntPtr.Zero);
+            richTextBox.SelectionStart = richTextBox.Text.Length;
+        }
+        
         private void ShowRichtextBox(string s,bool add = false)
         {
             if (checkBoxShowOutput.Checked)
@@ -461,6 +474,7 @@ namespace lost
                 {
                     richTextBox1.Text = s;
                 }
+                ScrollToBottom(richTextBox1);
                 Application.DoEvents();
             }
         }
@@ -568,47 +582,16 @@ namespace lost
             labelTitle.Text = $"Ich: {meinePunkteDiesesSpiel}, Gegner: {gegnerPunkteDiesesSpiel}";
         }
 
-        private void buttonNextMove_Click(object sender, EventArgs e)
-        {
-            //MeinZug = false;
-            //Spielläuft = true;
-            //while (Spielläuft)
-            //{
-                MeinZug = !MeinZug;
-                if (MeinZug)
-                {
-                    //NächsterZug(MeineHand);
-                }
-                else
-                {
-                    //NächsterZug(GegnerHand);
-                }
-            //}
-            ShowCards();
-            //BerechnePunkte(ref _i, ref _j);
-        }
-
         private void ResetCards()
         {
-            for (int i = 0; i < 65; i++)
-            {
-                Nachziehstapel[i] = null;
-            }
-            for (int i = 0; i < 8; i++)
-            {
-                MeineHand[i] = null;
-                GegnerHand[i] = null;
-            }
-
-            for (int i = 0; i <= 4; i++)
-            {
-                for (int j = 0; j <= 12; j++)
-                {
-                    Ablage[i,j] = null;
-                    MeinePunkte[i, j] = null;
-                    GegnerPunkte[i, j] = null;
-                }
-            }
+            Array.Clear(Nachziehstapel, 0, 65);
+            Array.Clear(MeineHand, 0, 8);
+            Array.Clear(GegnerHand, 0, 8);
+            Array.Clear(Ablage, 0, Ablage.Length);
+            Array.Clear(MeinePunkte, 0, MeinePunkte.Length);
+            Array.Clear(GegnerPunkte, 0, GegnerPunkte.Length);
+            alleAblagenSindLeer = true;
+            richTextBox1.Clear();
         }
 
         private void ShowCards()
@@ -720,7 +703,6 @@ namespace lost
 
         private void LetzteStarthandWiederverwenden()
         {
-            ResetCards();
             MixAllCards2Nachziehstapel();
             for (int i = 0; i < 8; i++)
             {
@@ -752,6 +734,7 @@ namespace lost
             var anzSpieleJeFall = int.Parse(textBoxLoops.Text);
             var meineGesPunkte = 0;
             var gegnerGesPunkte = 0;
+            kartenAufNachziehstapelBisZuDenenDieKleinerenWerteGespieltWerden = int.Parse(textBoxAnzKleiner.Text);
             //DefinedStartingHand();
             Dictionary<string, double> ausgabeDict = new Dictionary<string, double>();
             richTextBox1.Text = $"{anzSpieleJeFall} Spiele je Fall" + Environment.NewLine + Environment.NewLine;
@@ -771,6 +754,7 @@ namespace lost
                     {
                         anzSpiele++;
                         var ersterZug = true;
+                        ResetCards();
                         LetzteStarthandWiederverwenden();
                         //ShowCards();
                         //ResetCards();
@@ -783,14 +767,9 @@ namespace lost
                         Spielläuft = true;
                         while (Spielläuft)
                         {
-                            var letztesDrittel = false;
                             MeinZug = !MeinZug;
                             if (MeinZug)
                             {
-                                if (Nachziehstapel.Count(x => x != null) < 20)
-                                {
-                                    letztesDrittel = true;
-                                }
                                 if (ersterZug)
                                 {
                                     NächsterZug(MeineHand, i, j); //sukzessive mit diesen Kombinationen beginnen
@@ -798,12 +777,17 @@ namespace lost
                                 }
                                 else
                                 {
-                                    NächsterZug(MeineHand, null,null, letztesDrittel); //Zufallszug
+                                    NächsterZug(MeineHand, null,null); //Zufallszug
                                 }
                             }
                             else
                             {
-                                NächsterZug(GegnerHand,null,null, letztesDrittel);//Zufallszug
+                                NächsterZug(GegnerHand,null,null);//Zufallszug
+                            }
+                            if (checkBoxWaitAfterMoves.Checked)
+                            {
+                                BerechnePunkte(ref meinePunkteInDiesemTyp, ref gegnerPunkteInDiesemTyp);
+                                Application.DoEvents();
                             }
                         }
                         BerechnePunkte(ref meinePunkteInDiesemTyp, ref gegnerPunkteInDiesemTyp);
@@ -886,7 +870,7 @@ namespace lost
             return result;
         }
 
-        private List<Karte> LegeKarten(Farbe? farbeClick)
+        private List<Karte> KartenEingabe(Farbe? farbeClick)
         {
             var farbekurz = farbeClick.ToString().ToLower();
             if (farbekurz.Length > 0)
@@ -984,7 +968,7 @@ namespace lost
                     }
                 }
             }
-            var k = LegeKarten(null);
+            var k = KartenEingabe(null);
             if (k != null && k.Count == 1)
             {
                 for (int i = 0; i < 8; i++)
@@ -1102,14 +1086,14 @@ namespace lost
 
         private void LegeKartenAufPunktestapel(Farbe f)
         {
-            var k = LegeKarten(f);
+            var k = KartenEingabe(f);
             if (k != null)
             {
                 foreach (var ks in k)
                 {
                     LegeKarteAufPunkte(ks);
                 }
-                ShowCards();
+                //ShowCards();
             }
         }
 

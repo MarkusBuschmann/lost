@@ -60,7 +60,6 @@
             this.label29 = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
             this.label31 = new System.Windows.Forms.Label();
-            this.buttonNextMove = new System.Windows.Forms.Button();
             this.labelTitle = new System.Windows.Forms.Label();
             this.labelStack = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
@@ -69,7 +68,6 @@
             this.button3 = new System.Windows.Forms.Button();
             this.checkBoxShowOutput = new System.Windows.Forms.CheckBox();
             this.checkBoxWaitAfterMoves = new System.Windows.Forms.CheckBox();
-            this.checkBoxMyMoves = new System.Windows.Forms.CheckBox();
             this.textBoxMinSum = new System.Windows.Forms.TextBox();
             this.label32 = new System.Windows.Forms.Label();
             this.label33 = new System.Windows.Forms.Label();
@@ -86,11 +84,13 @@
             this.labelType = new System.Windows.Forms.Label();
             this.textBoxLoops = new System.Windows.Forms.TextBox();
             this.label42 = new System.Windows.Forms.Label();
+            this.label43 = new System.Windows.Forms.Label();
+            this.textBoxAnzKleiner = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(1101, 243);
+            this.button1.Location = new System.Drawing.Point(218, 12);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
@@ -446,16 +446,6 @@
             this.label31.TabIndex = 27;
             this.label31.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // buttonNextMove
-            // 
-            this.buttonNextMove.Location = new System.Drawing.Point(1101, 277);
-            this.buttonNextMove.Name = "buttonNextMove";
-            this.buttonNextMove.Size = new System.Drawing.Size(75, 23);
-            this.buttonNextMove.TabIndex = 33;
-            this.buttonNextMove.Text = "Nächster Zug";
-            this.buttonNextMove.UseVisualStyleBackColor = true;
-            this.buttonNextMove.Click += new System.EventHandler(this.buttonNextMove_Click);
-            // 
             // labelTitle
             // 
             this.labelTitle.Location = new System.Drawing.Point(603, 32);
@@ -477,9 +467,9 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(229, 12);
+            this.button2.Location = new System.Drawing.Point(326, 12);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(224, 23);
+            this.button2.Size = new System.Drawing.Size(113, 23);
             this.button2.TabIndex = 36;
             this.button2.Text = "Komplettes Spiel";
             this.button2.UseVisualStyleBackColor = true;
@@ -507,7 +497,7 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(487, 12);
+            this.button3.Location = new System.Drawing.Point(464, 12);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
             this.button3.TabIndex = 40;
@@ -518,6 +508,8 @@
             // checkBoxShowOutput
             // 
             this.checkBoxShowOutput.AutoSize = true;
+            this.checkBoxShowOutput.Checked = true;
+            this.checkBoxShowOutput.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxShowOutput.Location = new System.Drawing.Point(1025, 93);
             this.checkBoxShowOutput.Name = "checkBoxShowOutput";
             this.checkBoxShowOutput.Size = new System.Drawing.Size(88, 17);
@@ -528,26 +520,18 @@
             // checkBoxWaitAfterMoves
             // 
             this.checkBoxWaitAfterMoves.AutoSize = true;
-            this.checkBoxWaitAfterMoves.Location = new System.Drawing.Point(1025, 119);
+            this.checkBoxWaitAfterMoves.Checked = true;
+            this.checkBoxWaitAfterMoves.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxWaitAfterMoves.Location = new System.Drawing.Point(1025, 127);
             this.checkBoxWaitAfterMoves.Name = "checkBoxWaitAfterMoves";
             this.checkBoxWaitAfterMoves.Size = new System.Drawing.Size(135, 17);
             this.checkBoxWaitAfterMoves.TabIndex = 42;
             this.checkBoxWaitAfterMoves.Text = "Warte nach jedem Zug";
             this.checkBoxWaitAfterMoves.UseVisualStyleBackColor = true;
             // 
-            // checkBoxMyMoves
-            // 
-            this.checkBoxMyMoves.AutoSize = true;
-            this.checkBoxMyMoves.Location = new System.Drawing.Point(1025, 143);
-            this.checkBoxMyMoves.Name = "checkBoxMyMoves";
-            this.checkBoxMyMoves.Size = new System.Drawing.Size(171, 17);
-            this.checkBoxMyMoves.TabIndex = 43;
-            this.checkBoxMyMoves.Text = "Warte nur nach meinen Zügen";
-            this.checkBoxMyMoves.UseVisualStyleBackColor = true;
-            // 
             // textBoxMinSum
             // 
-            this.textBoxMinSum.Location = new System.Drawing.Point(960, 6);
+            this.textBoxMinSum.Location = new System.Drawing.Point(1037, 2);
             this.textBoxMinSum.Name = "textBoxMinSum";
             this.textBoxMinSum.Size = new System.Drawing.Size(61, 20);
             this.textBoxMinSum.TabIndex = 44;
@@ -573,7 +557,7 @@
             // 
             // textBoxMinSumGegner
             // 
-            this.textBoxMinSumGegner.Location = new System.Drawing.Point(961, 29);
+            this.textBoxMinSumGegner.Location = new System.Drawing.Point(1038, 25);
             this.textBoxMinSumGegner.Name = "textBoxMinSumGegner";
             this.textBoxMinSumGegner.Size = new System.Drawing.Size(61, 20);
             this.textBoxMinSumGegner.TabIndex = 46;
@@ -673,7 +657,7 @@
             // 
             // textBoxLoops
             // 
-            this.textBoxLoops.Location = new System.Drawing.Point(1096, 9);
+            this.textBoxLoops.Location = new System.Drawing.Point(1037, 224);
             this.textBoxLoops.Name = "textBoxLoops";
             this.textBoxLoops.Size = new System.Drawing.Size(100, 20);
             this.textBoxLoops.TabIndex = 59;
@@ -682,17 +666,36 @@
             // label42
             // 
             this.label42.AutoSize = true;
-            this.label42.Location = new System.Drawing.Point(1049, 12);
+            this.label42.Location = new System.Drawing.Point(983, 231);
             this.label42.Name = "label42";
             this.label42.Size = new System.Drawing.Size(39, 13);
             this.label42.TabIndex = 60;
             this.label42.Text = "Loops:";
+            // 
+            // label43
+            // 
+            this.label43.AutoSize = true;
+            this.label43.Location = new System.Drawing.Point(807, 52);
+            this.label43.Name = "label43";
+            this.label43.Size = new System.Drawing.Size(225, 13);
+            this.label43.TabIndex = 62;
+            this.label43.Text = "Anzahl  Karten auf Nachz. unter denen kleiner";
+            // 
+            // textBoxAnzKleiner
+            // 
+            this.textBoxAnzKleiner.Location = new System.Drawing.Point(1038, 49);
+            this.textBoxAnzKleiner.Name = "textBoxAnzKleiner";
+            this.textBoxAnzKleiner.Size = new System.Drawing.Size(61, 20);
+            this.textBoxAnzKleiner.TabIndex = 61;
+            this.textBoxAnzKleiner.Text = "20";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1204, 791);
+            this.Controls.Add(this.label43);
+            this.Controls.Add(this.textBoxAnzKleiner);
             this.Controls.Add(this.label42);
             this.Controls.Add(this.textBoxLoops);
             this.Controls.Add(this.labelType);
@@ -709,7 +712,6 @@
             this.Controls.Add(this.textBoxMinSumGegner);
             this.Controls.Add(this.label32);
             this.Controls.Add(this.textBoxMinSum);
-            this.Controls.Add(this.checkBoxMyMoves);
             this.Controls.Add(this.checkBoxWaitAfterMoves);
             this.Controls.Add(this.checkBoxShowOutput);
             this.Controls.Add(this.button3);
@@ -718,7 +720,6 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.labelStack);
             this.Controls.Add(this.labelTitle);
-            this.Controls.Add(this.buttonNextMove);
             this.Controls.Add(this.label27);
             this.Controls.Add(this.label28);
             this.Controls.Add(this.label29);
@@ -794,7 +795,6 @@
         private System.Windows.Forms.Label label29;
         private System.Windows.Forms.Label label30;
         private System.Windows.Forms.Label label31;
-        private System.Windows.Forms.Button buttonNextMove;
         private System.Windows.Forms.Label labelTitle;
         private System.Windows.Forms.Label labelStack;
         private System.Windows.Forms.Button button2;
@@ -803,7 +803,6 @@
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.CheckBox checkBoxShowOutput;
         private System.Windows.Forms.CheckBox checkBoxWaitAfterMoves;
-        private System.Windows.Forms.CheckBox checkBoxMyMoves;
         private System.Windows.Forms.TextBox textBoxMinSum;
         private System.Windows.Forms.Label label32;
         private System.Windows.Forms.Label label33;
@@ -820,6 +819,8 @@
         private System.Windows.Forms.Label labelType;
         private System.Windows.Forms.TextBox textBoxLoops;
         private System.Windows.Forms.Label label42;
+        private System.Windows.Forms.Label label43;
+        private System.Windows.Forms.TextBox textBoxAnzKleiner;
     }
 }
 
